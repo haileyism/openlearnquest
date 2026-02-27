@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
-import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveUnlockedLevel } from './gameLevelUtils';
+import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveCompletedLevel, saveUnlockedLevel } from './gameLevelUtils';
 
 const LEVEL_ARRAYS = {
   1: [45, 20, 80, 55, 10, 30, 70],
@@ -123,6 +123,7 @@ export default function HeapSortGamePage({ mode, onExit }) {
     const nextIdx = opIdx + 1;
     if (nextIdx >= ops.length) {
       setIsComplete(true);
+      saveCompletedLevel('heap', mode, level);
       unlockNextLevel();
       setActivePseudoLine(5);
       return;

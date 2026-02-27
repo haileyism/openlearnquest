@@ -22,3 +22,32 @@ export const saveUnlockedLevel = (algoKey, mode, level) => {
     // Ignore localStorage issues.
   }
 };
+
+export const saveCompletedLevel = (algoKey, mode, level) => {
+  if (!isLeveledMode(mode)) return;
+  try {
+    const key = `sortlogic.${algoKey}.${mode}.completedLevel`;
+    const prev = Number(localStorage.getItem(key) || 0);
+    if (level > prev) {
+      localStorage.setItem(key, String(level));
+    }
+  } catch {
+    // Ignore localStorage issues.
+  }
+};
+
+export const getCompletedLevel = (algoKey, mode) => {
+  if (!isLeveledMode(mode)) return 0;
+  try {
+    const savedCompleted = Number(localStorage.getItem(`sortlogic.${algoKey}.${mode}.completedLevel`));
+    if (Number.isInteger(savedCompleted) && savedCompleted >= 0 && savedCompleted <= MAX_LEVEL) {
+      return savedCompleted;
+    }
+  } catch {
+    // Ignore localStorage issues.
+  }
+
+  // Backward-compatible fallback for runs completed before completedLevel existed.
+  const unlocked = getUnlockedLevel(algoKey, mode);
+  return Math.max(0, Math.min(MAX_LEVEL, unlocked - 1));
+};

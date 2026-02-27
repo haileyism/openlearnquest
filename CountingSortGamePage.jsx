@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
-import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveUnlockedLevel } from './gameLevelUtils';
+import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveCompletedLevel, saveUnlockedLevel } from './gameLevelUtils';
 
 const LEVEL_ARRAYS = {
   1: [4, 2, 7, 2, 5, 1, 4],
@@ -143,6 +143,7 @@ export default function CountingSortGamePage({ mode, onExit }) {
     if (nextOutput.length >= data.length) {
       setData(nextOutput);
       setIsComplete(true);
+      saveCompletedLevel('counting', mode, level);
       unlockNextLevel();
       setActivePseudoLine(5);
     }

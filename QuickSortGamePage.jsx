@@ -20,6 +20,18 @@ const getUnlockedLevel = (mode) => {
   }
   return 1;
 };
+const saveCompletedLevel = (mode, level) => {
+  if (!isLeveledMode(mode)) return;
+  try {
+    const key = `sortlogic.quick.${mode}.completedLevel`;
+    const prev = Number(localStorage.getItem(key) || 0);
+    if (level > prev) {
+      localStorage.setItem(key, String(level));
+    }
+  } catch {
+    // Ignore storage errors and continue normally.
+  }
+};
 const getInitialRanges = (level) => [{ l: 0, r: LEVEL_ARRAYS[level].length - 1 }];
 
 export default function QuickSortGamePage({ mode, onExit }) {
@@ -184,6 +196,7 @@ export default function QuickSortGamePage({ mode, onExit }) {
     logAction(`Pivot ${data[pivotFinalIndex]} placed at index ${pivotFinalIndex}`, 'text-green-500');
 
     if (nextRanges.length === 0) {
+      saveCompletedLevel(mode, level);
       unlockNextLevel();
       setIsComplete(true);
       setActivePseudoLine(1);

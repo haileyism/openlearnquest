@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
-import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveUnlockedLevel } from './gameLevelUtils';
+import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveCompletedLevel, saveUnlockedLevel } from './gameLevelUtils';
 
 const LEVEL_ARRAYS = {
   1: [12, 68, 43, 5, 57, 24, 89],
@@ -142,6 +142,7 @@ export default function BucketSortGamePage({ mode, onExit }) {
     if (nextOutput.length >= data.length) {
       setData(nextOutput);
       setIsComplete(true);
+      saveCompletedLevel('bucket', mode, level);
       unlockNextLevel();
       setActivePseudoLine(5);
     }

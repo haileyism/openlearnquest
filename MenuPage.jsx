@@ -1,64 +1,67 @@
 import React from 'react';
 import { Layers, Zap, Container, ListFilter, GitMerge, TreePine, Hash, Milestone, PackageOpen, Bug, Sparkles } from 'lucide-react';
+import { MAX_LEVEL, getCompletedLevel } from './gameLevelUtils';
 
 const ALGO_DATA = {
   'Insertion Sort': {
     complexity: 'O(n²)',
     description: 'Foundational logic. Build the sorted array one item at a time.',
-    levels: 3,
-    progress: '66%',
   },
   'Bubble Sort': {
     complexity: 'O(n²)',
     description: 'Repeatedly compare adjacent items and bubble large values rightward.',
-    levels: 3,
-    progress: '0%',
   },
   'Quick Sort': {
     complexity: 'O(n log n)',
     description: 'Choose pivots and partition ranges to sort recursively.',
-    levels: 3,
-    progress: '0%',
   },
   'Selection Sort': {
     complexity: 'O(n²)',
     description: 'Scan for the minimum and place it at the front each pass.',
-    levels: 3,
-    progress: '0%',
   },
   'Merge Sort': {
     complexity: 'O(n log n)',
     description: 'Recursive divide-and-conquer with stable merging.',
-    levels: 3,
-    progress: '0%',
   },
   'Heap Sort': {
     complexity: 'O(n log n)',
     description: 'Build a max-heap and repeatedly extract the root.',
-    levels: 3,
-    progress: '0%',
   },
   'Counting Sort': {
     complexity: 'O(n + k)',
     description: 'Track frequencies and reconstruct sorted output.',
-    levels: 3,
-    progress: '0%',
   },
   'Radix Sort': {
     complexity: 'O(d(n + k))',
     description: 'Sort digit by digit using stable bucket passes.',
-    levels: 3,
-    progress: '0%',
   },
   'Bucket Sort': {
     complexity: 'O(n + k)',
     description: 'Distribute by ranges, sort buckets, and gather.',
-    levels: 3,
-    progress: '0%',
   },
 };
 
+const ALGO_KEYS = {
+  'Insertion Sort': 'insertion',
+  'Bubble Sort': 'bubble',
+  'Quick Sort': 'quick',
+  'Selection Sort': 'selection',
+  'Merge Sort': 'merge',
+  'Heap Sort': 'heap',
+  'Counting Sort': 'counting',
+  'Radix Sort': 'radix',
+  'Bucket Sort': 'bucket',
+};
+
 export default function MenuPage({ onSelectAlgo }) {
+  const getProgressPercent = (name) => {
+    const algoKey = ALGO_KEYS[name];
+    const trainingDone = getCompletedLevel(algoKey, 'training');
+    const regularDone = getCompletedLevel(algoKey, 'regular');
+    const completed = Math.max(trainingDone, regularDone);
+    return Math.round((completed / MAX_LEVEL) * 100);
+  };
+
   const cards = [
     { name: 'Insertion Sort', Icon: Layers },
     { name: 'Bubble Sort', Icon: Zap },
@@ -87,7 +90,7 @@ export default function MenuPage({ onSelectAlgo }) {
             <p className="text-slate-500 text-sm mb-4">{ALGO_DATA[name].description}</p>
             <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-slate-400">
               <span>{ALGO_DATA[name].complexity}</span>
-              <span className="text-green-500">{ALGO_DATA[name].progress} Completed</span>
+              <span className="text-green-500">{getProgressPercent(name)}% Completed</span>
             </div>
           </div>
         ))}

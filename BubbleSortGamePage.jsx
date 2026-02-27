@@ -20,6 +20,18 @@ const getUnlockedLevel = (mode) => {
   }
   return 1;
 };
+const saveCompletedLevel = (mode, level) => {
+  if (!isLeveledMode(mode)) return;
+  try {
+    const key = `sortlogic.bubble.${mode}.completedLevel`;
+    const prev = Number(localStorage.getItem(key) || 0);
+    if (level > prev) {
+      localStorage.setItem(key, String(level));
+    }
+  } catch {
+    // Ignore storage errors and continue normally.
+  }
+};
 
 export default function BubbleSortGamePage({ mode, onExit }) {
   const [level, setLevel] = useState(1);
@@ -163,6 +175,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
   };
 
   const finishSort = () => {
+    saveCompletedLevel(mode, level);
     unlockNextLevel();
     setIsComplete(true);
     setActivePseudoLine(1);

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
-import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveUnlockedLevel } from './gameLevelUtils';
+import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveCompletedLevel, saveUnlockedLevel } from './gameLevelUtils';
 
 const LEVEL_ARRAYS = {
   1: [45, 20, 80, 55, 10, 30, 70],
@@ -95,6 +95,7 @@ export default function SelectionSortGamePage({ mode, onExit }) {
   const moveToNextPass = (nextData) => {
     const nextI = iIndex + 1;
     if (nextI >= nextData.length - 1) {
+      saveCompletedLevel('selection', mode, level);
       unlockNextLevel();
       setIsComplete(true);
       logAction('SORT COMPLETE', 'text-amber-500 font-bold');

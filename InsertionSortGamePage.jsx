@@ -20,6 +20,18 @@ const getUnlockedLevel = (mode) => {
   }
   return 1;
 };
+const saveCompletedLevel = (mode, level) => {
+  if (!isLeveledMode(mode)) return;
+  try {
+    const key = `sortlogic.insertion.${mode}.completedLevel`;
+    const prev = Number(localStorage.getItem(key) || 0);
+    if (level > prev) {
+      localStorage.setItem(key, String(level));
+    }
+  } catch {
+    // Ignore storage errors and continue normally.
+  }
+};
 
 export default function InsertionSortGamePage({ mode, onExit }) {
   const [level, setLevel] = useState(1);
@@ -152,6 +164,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
   const moveToNextI = () => {
     const nextI = iIndex + 1;
     if (nextI >= data.length) {
+      saveCompletedLevel(mode, level);
       unlockNextLevel();
       setIsComplete(true);
       setActivePseudoLine(1);

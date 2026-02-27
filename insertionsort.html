@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SortLogic Elite | Insertion Sort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .bar { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .slot { border: 2px dashed #cbd5e1; transition: all 0.2s; position: absolute; transform: translateX(-50%); }
+        .slot:hover { border-color: #6366f1; background-color: #eef2ff; scale: 1.1; }
+        .slot-active { opacity: 1 !important; pointer-events: auto !important; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="app" class="max-w-6xl mx-auto">
+        <!-- TOP NAV -->
+        <nav class="flex justify-between items-center mb-8 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">Insertion Sort <span class="text-indigo-600 text-sm ml-2" id="mode-badge">Training Mode</span></h1>
+                </div>
+            </div>
+            <div class="flex gap-6 items-center">
+                <div id="hearts-display" class="flex gap-1 text-red-500 text-xl"></div>
+                <div class="h-8 w-[1px] bg-slate-200"></div>
+                <button onclick="window.history.back()" class="text-slate-500 hover:text-slate-900 font-medium">Exit Lab</button>
+            </div>
+        </nav>
+
+        <div class="grid lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-3 space-y-6">
+                <!-- STAGE -->
+                <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-10 relative overflow-hidden min-h-[550px] flex flex-col">
+                    
+                    <div class="flex justify-between items-start mb-12">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <p class="text-[10px] uppercase text-slate-400 font-bold">Timer</p>
+                                <p class="text-xl font-mono text-slate-700" id="display-time">00:00</p>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <p class="text-[10px] uppercase text-slate-400 font-bold">Mistakes</p>
+                                <p class="text-xl font-mono text-red-500" id="display-mistakes">0</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-semibold text-slate-500">Goal: Sort the Array</p>
+                            <p id="instruction" class="text-indigo-600 font-bold italic">Select the next unsorted element (Index 1).</p>
+                        </div>
+                    </div>
+
+                    <div class="relative flex-grow flex flex-col justify-center items-center">
+                        <!-- Bar Container -->
+                        <div id="visualizer" class="flex items-end justify-center gap-8 h-64 w-full px-12"></div>
+                        
+                        <!-- Drop Zones Container -->
+                        <div id="drop-zones-container" class="relative w-full h-20 mt-10 opacity-0 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+
+                    <div class="flex justify-center gap-4 mt-8">
+                        <button onclick="initGame()" class="px-8 py-3 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+                            <i class="fa-solid fa-rotate-right mr-2"></i> Reset Level
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Analytics -->
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-simple text-indigo-500"></i> Analytics
+                    </h3>
+                    <div class="space-y-4" id="analytics-content">
+                        <div class="flex justify-between text-sm"><span class="text-slate-500">Repeats</span><span class="font-bold" id="metric-repeats">1</span></div>
+                        <div class="flex justify-between text-sm"><span class="text-slate-500">Comparisons</span><span class="font-bold" id="metric-comps">0</span></div>
+                        <div class="flex justify-between text-sm"><span class="text-slate-500">Score</span><span class="font-bold text-green-600" id="metric-score">+0</span></div>
+                    </div>
+                </div>
+
+                <!-- Log -->
+                <div class="bg-slate-900 rounded-3xl p-6 shadow-lg text-indigo-100 h-[300px] flex flex-col">
+                    <h3 class="font-bold mb-4 text-xs uppercase tracking-widest text-slate-500">Activity Log</h3>
+                    <div id="log-content" class="text-xs space-y-2 overflow-y-auto font-mono flex-grow"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[40px] max-w-lg w-full p-10 shadow-2xl">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6">
+                <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">Placement Error</h2>
+            <p id="error-text" class="text-slate-600 mb-8 leading-relaxed"></p>
+            <button onclick="closeModal()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold hover:bg-indigo-700 transition-all">I Understand</button>
+        </div>
+    </div>
+
+    <script>
+        const INITIAL_DATA = [34, 12, 5, 89, 42, 21];
+        let data = [...INITIAL_DATA];
+        let sortedCount = 1; 
+        let currentKey = null;
+        let isSelectingKey = true;
+        let mistakes = 0;
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let comparisons = 0;
+        let score = 0;
+        let repeats = 1;
+
+        function updateUI() {
+            document.getElementById('display-mistakes').innerText = mistakes;
+            document.getElementById('metric-comps').innerText = comparisons;
+            document.getElementById('metric-score').innerText = `+${score}`;
+            document.getElementById('metric-repeats').innerText = repeats;
+            renderBars();
+        }
+
+        function renderBars() {
+            const viz = document.getElementById('visualizer');
+            viz.innerHTML = '';
+            
+            data.forEach((val, idx) => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'flex flex-col items-center gap-2 transition-all duration-500';
+                barContainer.setAttribute('data-index', idx);
+
+                const bar = document.createElement('div');
+                bar.className = `bar w-14 rounded-xl flex items-center justify-center text-sm font-bold shadow-sm cursor-pointer`;
+                
+                if (idx < sortedCount) bar.classList.add('bg-indigo-600', 'text-white');
+                else if (idx === sortedCount && isSelectingKey) bar.classList.add('bg-white', 'border-4', 'border-indigo-400', 'text-slate-800');
+                else bar.classList.add('bg-slate-200', 'text-slate-500');
+
+                if (currentKey !== null && idx === currentKey.originalIdx) {
+                    bar.classList.add('opacity-20', 'border-dashed'
+                    , 'border-2', 'border-slate-400');
+                }
+
+                bar.style.height = `${val * 2 + 40}px`;
+                bar.innerHTML = val;
+                bar.onclick = () => handleAction(idx);
+
+                barContainer.appendChild(bar);
+                const label = document.createElement('span');
+                label.className = 'text-[10px] font-bold text-slate-400 uppercase';
+                label.innerText = `idx ${idx}`;
+                barContainer.appendChild(label);
+                viz.appendChild(barContainer);
+            });
+
+            setTimeout(renderDropZones, 50);
+            
+            if (!isSelectingKey && currentKey !== null) {
+                document.getElementById('drop-zones-container').classList.add('slot-active');
+            } else {
+                document.getElementById('drop-zones-container').classList.remove('slot-active');
+            }
+        }
+
+        function renderDropZones() {
+            const container = document.getElementById('drop-zones-container');
+            const visualizer = document.getElementById('visualizer');
+            const bars = visualizer.querySelectorAll('[data-index]');
+            
+            if (bars.length === 0) return;
+            container.innerHTML = '';
+
+            const parentRect = visualizer.getBoundingClientRect();
+            const gap = 32; // Tailwind gap-8
+
+            for (let i = 0; i <= sortedCount; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'slot w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer shadow-md bg-white border-2 border-slate-100';
+                slot.innerHTML = `<i class="fa-solid fa-arrow-up text-indigo-500"></i>`;
+                
+                let centerX;
+                if (i === 0) {
+                    // Start of the array: align to the left side of the first bar + offset
+                    const rect = bars[0].getBoundingClientRect();
+                    centerX = rect.left - (gap / 3); // Shifted slightly right compared to previous
+                } else if (i < bars.length) {
+                    // Mid-array: Midpoint between bars
+                    const prevRect = bars[i-1].getBoundingClientRect();
+                    const nextRect = bars[i].getBoundingClientRect();
+                    centerX = (prevRect.right + nextRect.left) / 2;
+                } else {
+                    // End of array
+                    const rect = bars[bars.length-1].getBoundingClientRect();
+                    centerX = rect.right + (gap / 3);
+                }
+
+                // Add an additional constant offset to shift all pointers slightly right as requested
+                const visualOffset = 4; 
+                slot.style.left = `${(centerX - parentRect.left) + visualOffset}px`;
+                slot.onclick = () => attemptInsertion(i);
+                container.appendChild(slot);
+            }
+        }
+
+        function handleAction(idx) {
+            if (!isSelectingKey) return;
+            if (idx === sortedCount) {
+                currentKey = { val: data[idx], originalIdx: idx };
+                isSelectingKey = false;
+                logAction(`Picked ${currentKey.val} at Index ${idx}`);
+                document.getElementById('instruction').innerText = `Place ${currentKey.val} in the correct sorted slot.`;
+                renderBars();
+            } else {
+                triggerError("Out of Sequence", `Insertion sort moves from left to right. Select index ${sortedCount}.`);
+            }
+        }
+
+        function attemptInsertion(targetIdx) {
+            let correctIdx = 0;
+            while (correctIdx < sortedCount && data[correctIdx] < currentKey.val) {
+                correctIdx++;
+            }
+            comparisons++;
+
+            if (targetIdx === correctIdx) {
+                score += 10;
+                logAction(`Correct! Inserted at index ${targetIdx}`, 'text-green-500');
+                const [removed] = data.splice(currentKey.originalIdx, 1);
+                data.splice(targetIdx, 0, removed);
+                sortedCount++;
+                currentKey = null;
+                isSelectingKey = true;
+                if (sortedCount === data.length) finishGame();
+                else document.getElementById('instruction').innerText = `Select the next unsorted element (Index ${sortedCount}).`;
+                updateUI();
+            } else {
+                triggerError("Incorrect Logic", `Value ${currentKey.val} doesn't belong at index ${targetIdx}. Check the values to its left and right.`);
+            }
+        }
+
+        function triggerError(type, msg) {
+            mistakes++;
+            document.getElementById('error-text').innerText = msg;
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            updateUI();
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+        function logAction(msg, cls = 'text-slate-400') {
+            const log = document.getElementById('log-content');
+            const el = document.createElement('div');
+            el.className = cls;
+            el.innerText = `> ${msg}`;
+            log.prepend(el);
+        }
+
+        function finishGame() {
+            clearInterval(timerInterval);
+            document.getElementById('instruction').innerText = "Sorted! Mastery achieved.";
+            logAction("SORT COMPLETE", "text-amber-500 font-bold");
+        }
+
+        function initGame() {
+            data = [...INITIAL_DATA];
+            sortedCount = 1; currentKey = null; isSelectingKey = true;
+            mistakes = 0; timerSeconds = 0; comparisons = 0; score = 0;
+            updateUI();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const m = String(Math.floor(timerSeconds/60)).padStart(2, '0');
+                const s = String(timerSeconds%60).padStart(2, '0');
+                document.getElementById('display-time').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        window.onload = initGame;
+        window.onresize = renderBars;
+    </script>
+</body>
+</html>

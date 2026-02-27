@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
+import HelpPlaceholder from './HelpPlaceholder';
 
 const MAX_LEVEL = 3;
 const LEVEL_ARRAYS = {
@@ -388,6 +389,7 @@ export default function QuickSortGamePage({ mode, onExit }) {
               <p className={`font-semibold text-slate-700 ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
+          <HelpPlaceholder mode={mode} />
 
           <div className="flex justify-center gap-4">
             <button onClick={() => resetGame(true)} className="px-6 py-2 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-600 flex items-center gap-2">

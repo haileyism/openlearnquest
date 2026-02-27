@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
+import HelpPlaceholder from './HelpPlaceholder';
 
 const MAX_LEVEL = 3;
 const LEVEL_ARRAYS = {
@@ -331,6 +332,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
               <p className={`font-semibold text-slate-700 ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
+          <HelpPlaceholder mode={mode} />
 
           <div className="flex justify-center gap-4">
             <button

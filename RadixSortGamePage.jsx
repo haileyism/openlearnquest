@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
 import { LEVELS, MAX_LEVEL, getUnlockedLevel, isLeveledMode, saveCompletedLevel, saveUnlockedLevel } from './gameLevelUtils';
+import HelpPlaceholder from './HelpPlaceholder';
 
 const LEVEL_ARRAYS = {
   1: [45, 20, 80, 55, 10, 30, 70],
@@ -194,6 +195,7 @@ export default function RadixSortGamePage({ mode, onExit }) {
               <p className={`font-semibold text-slate-700 ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
+          <HelpPlaceholder mode={mode} />
 
           <div className="flex justify-center gap-4">
             <button onClick={() => resetGame(level)} className="px-6 py-2 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-600 flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>

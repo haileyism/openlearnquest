@@ -5,6 +5,12 @@ import ModePage from './ModePage';
 import InsertionSortGamePage from './InsertionSortGamePage';
 import BubbleSortGamePage from './BubbleSortGamePage';
 import QuickSortGamePage from './QuickSortGamePage';
+import SelectionSortGamePage from './SelectionSortGamePage';
+import MergeSortGamePage from './MergeSortGamePage';
+import HeapSortGamePage from './HeapSortGamePage';
+import CountingSortGamePage from './CountingSortGamePage';
+import RadixSortGamePage from './RadixSortGamePage';
+import BucketSortGamePage from './BucketSortGamePage';
 
 export default function App() {
   const [view, setView] = useState('menu'); // 'menu', 'mode', 'game'
@@ -65,6 +71,42 @@ export default function App() {
             )}
             {selectedAlgo === 'Quick Sort' && (
               <QuickSortGamePage
+                mode={gameMode}
+                onExit={() => setView('menu')}
+              />
+            )}
+            {selectedAlgo === 'Selection Sort' && (
+              <SelectionSortGamePage
+                mode={gameMode}
+                onExit={() => setView('menu')}
+              />
+            )}
+            {selectedAlgo === 'Merge Sort' && (
+              <MergeSortGamePage
+                mode={gameMode}
+                onExit={() => setView('menu')}
+              />
+            )}
+            {selectedAlgo === 'Heap Sort' && (
+              <HeapSortGamePage
+                mode={gameMode}
+                onExit={() => setView('menu')}
+              />
+            )}
+            {selectedAlgo === 'Counting Sort' && (
+              <CountingSortGamePage
+                mode={gameMode}
+                onExit={() => setView('menu')}
+              />
+            )}
+            {selectedAlgo === 'Radix Sort' && (
+              <RadixSortGamePage
+                mode={gameMode}
+                onExit={() => setView('menu')}
+              />
+            )}
+            {selectedAlgo === 'Bucket Sort' && (
+              <BucketSortGamePage
                 mode={gameMode}
                 onExit={() => setView('menu')}
               />

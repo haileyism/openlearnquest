@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Zap, Container, Microchip, Bug, Sparkles } from 'lucide-react';
+import { Layers, Zap, Container, ListFilter, GitMerge, TreePine, Hash, Milestone, PackageOpen, Bug, Sparkles } from 'lucide-react';
 
 const ALGO_DATA = {
   'Insertion Sort': {
@@ -20,74 +20,77 @@ const ALGO_DATA = {
     levels: 3,
     progress: '0%',
   },
+  'Selection Sort': {
+    complexity: 'O(n²)',
+    description: 'Scan for the minimum and place it at the front each pass.',
+    levels: 3,
+    progress: '0%',
+  },
+  'Merge Sort': {
+    complexity: 'O(n log n)',
+    description: 'Recursive divide-and-conquer with stable merging.',
+    levels: 3,
+    progress: '0%',
+  },
+  'Heap Sort': {
+    complexity: 'O(n log n)',
+    description: 'Build a max-heap and repeatedly extract the root.',
+    levels: 3,
+    progress: '0%',
+  },
+  'Counting Sort': {
+    complexity: 'O(n + k)',
+    description: 'Track frequencies and reconstruct sorted output.',
+    levels: 3,
+    progress: '0%',
+  },
+  'Radix Sort': {
+    complexity: 'O(d(n + k))',
+    description: 'Sort digit by digit using stable bucket passes.',
+    levels: 3,
+    progress: '0%',
+  },
+  'Bucket Sort': {
+    complexity: 'O(n + k)',
+    description: 'Distribute by ranges, sort buckets, and gather.',
+    levels: 3,
+    progress: '0%',
+  },
 };
 
 export default function MenuPage({ onSelectAlgo }) {
+  const cards = [
+    { name: 'Insertion Sort', Icon: Layers },
+    { name: 'Bubble Sort', Icon: Zap },
+    { name: 'Selection Sort', Icon: ListFilter },
+    { name: 'Quick Sort', Icon: Container },
+    { name: 'Merge Sort', Icon: GitMerge },
+    { name: 'Heap Sort', Icon: TreePine },
+    { name: 'Counting Sort', Icon: Hash },
+    { name: 'Radix Sort', Icon: Milestone },
+    { name: 'Bucket Sort', Icon: PackageOpen },
+  ];
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div
-          onClick={() => onSelectAlgo('Insertion Sort')}
-          className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-400 transition-all cursor-pointer group"
-        >
-          <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
-            <Layers size={24} />
+        {cards.map(({ name, Icon }) => (
+          <div
+            key={name}
+            onClick={() => onSelectAlgo(name)}
+            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-400 transition-all cursor-pointer group"
+          >
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
+              <Icon size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800">{name}</h3>
+            <p className="text-slate-500 text-sm mb-4">{ALGO_DATA[name].description}</p>
+            <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <span>{ALGO_DATA[name].complexity}</span>
+              <span className="text-green-500">{ALGO_DATA[name].progress} Completed</span>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-slate-800">Insertion Sort</h3>
-          <p className="text-slate-500 text-sm mb-4">{ALGO_DATA['Insertion Sort'].description}</p>
-          <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-slate-400">
-            <span>{ALGO_DATA['Insertion Sort'].complexity}</span>
-            <span className="text-green-500">{ALGO_DATA['Insertion Sort'].progress} Completed</span>
-          </div>
-        </div>
-
-        <div
-          onClick={() => onSelectAlgo('Bubble Sort')}
-          className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-400 transition-all cursor-pointer group"
-        >
-          <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
-            <Zap size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-800">Bubble Sort</h3>
-          <p className="text-slate-500 text-sm mb-4">{ALGO_DATA['Bubble Sort'].description}</p>
-          <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-slate-400">
-            <span>{ALGO_DATA['Bubble Sort'].complexity}</span>
-            <span className="text-green-500">{ALGO_DATA['Bubble Sort'].progress} Completed</span>
-          </div>
-        </div>
-
-        <div
-          onClick={() => onSelectAlgo('Quick Sort')}
-          className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-400 transition-all cursor-pointer group"
-        >
-          <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4 group-hover:scale-110 transition-transform">
-            <Container size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-800">Quick Sort</h3>
-          <p className="text-slate-500 text-sm mb-4">{ALGO_DATA['Quick Sort'].description}</p>
-          <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-slate-400">
-            <span>{ALGO_DATA['Quick Sort'].complexity}</span>
-            <span className="text-green-500">{ALGO_DATA['Quick Sort'].progress} Completed</span>
-          </div>
-        </div>
-
-        <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-300 opacity-75 cursor-not-allowed">
-          <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 mb-4">
-            <Container size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-400">Distribution</h3>
-          <p className="text-slate-400 text-sm mb-4">Radix & Bucket Sorts.</p>
-          <span className="bg-slate-200 text-slate-500 px-2 py-1 rounded text-[10px] font-bold">LOCKED</span>
-        </div>
-
-        <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-300 opacity-75 cursor-not-allowed">
-          <div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 mb-4">
-            <Microchip size={24} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-400">Hybrid</h3>
-          <p className="text-slate-400 text-sm mb-4">Timsort & Introsort.</p>
-          <span className="bg-slate-200 text-slate-500 px-2 py-1 rounded text-[10px] font-bold">LOCKED</span>
-        </div>
+        ))}
       </div>
 
       <div className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl">

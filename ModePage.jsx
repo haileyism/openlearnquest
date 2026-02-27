@@ -37,6 +37,7 @@ export default function ModePage({ algoName, onBack, onStart }) {
           <h3 className="text-2xl font-bold mb-2 text-slate-800">Training Mode</h3>
           <ul className="text-slate-500 space-y-3 mb-8">
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> Infinite Lives</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> 3 Progressive Levels</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> Reasoning Pop-ups</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> Step-by-Step Hints</li>
           </ul>
@@ -53,6 +54,7 @@ export default function ModePage({ algoName, onBack, onStart }) {
           <h3 className="text-2xl font-bold mb-2 text-slate-800">Regular Mode</h3>
           <ul className="text-slate-500 space-y-3 mb-8">
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> 5 Lives Only</li>
+            <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> 3 Progressive Levels</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> Global Leaderboard</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> Performance Analytics</li>
           </ul>

@@ -1,10 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
 
-const INITIAL_ARRAY = [45, 20, 80, 55, 10, 30, 70];
+const MAX_LEVEL = 3;
+const LEVEL_ARRAYS = {
+  1: [45, 20, 80, 55, 10, 30, 70],
+  2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
+  3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
+};
+
+const isLeveledMode = (mode) => mode === 'training' || mode === 'regular';
+const getProgressKey = (mode) => `sortlogic.insertion.${mode}.maxLevel`;
+const getUnlockedLevel = (mode) => {
+  if (!isLeveledMode(mode)) return 1;
+  try {
+    const saved = Number(localStorage.getItem(getProgressKey(mode)));
+    if (Number.isInteger(saved) && saved >= 1 && saved <= MAX_LEVEL) return saved;
+  } catch {
+    // Ignore storage errors and fall back to level 1.
+  }
+  return 1;
+};
 
 export default function InsertionSortGamePage({ mode, onExit }) {
-  const [data, setData] = useState([...INITIAL_ARRAY]);
+  const [level, setLevel] = useState(1);
+  const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel(mode));
+  const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
   const [iIndex, setIIndex] = useState(1);
   const [jIndex, setJIndex] = useState(1);
   const [dragIndex, setDragIndex] = useState(null);
@@ -60,8 +80,8 @@ export default function InsertionSortGamePage({ mode, onExit }) {
     setActivityLog((prev) => [{ msg, cls }, ...prev].slice(0, 80));
   };
 
-  const resetGame = (isRepeat = false) => {
-    setData([...INITIAL_ARRAY]);
+  const resetGame = (isRepeat = false, targetLevel = level) => {
+    setData([...LEVEL_ARRAYS[targetLevel]]);
     setIIndex(1);
     setJIndex(1);
     setDragIndex(null);
@@ -75,6 +95,35 @@ export default function InsertionSortGamePage({ mode, onExit }) {
     setIsComplete(false);
     setActivePseudoLine(3);
     if (isRepeat) setRepeats((r) => r + 1);
+  };
+
+  useEffect(() => {
+    const unlocked = getUnlockedLevel(mode);
+    setLevel(1);
+    setMaxUnlockedLevel(unlocked);
+    resetGame(false, 1);
+  }, [mode]);
+
+  const unlockNextLevel = () => {
+    if (!isLeveledMode(mode)) return;
+    setMaxUnlockedLevel((prev) => {
+      const nextUnlocked = Math.min(MAX_LEVEL, Math.max(prev, level + 1));
+      if (nextUnlocked !== prev) {
+        try {
+          localStorage.setItem(getProgressKey(mode), String(nextUnlocked));
+        } catch {
+          // Ignore storage errors and continue normally.
+        }
+        logAction(`Level ${nextUnlocked} unlocked`, 'text-emerald-400');
+      }
+      return nextUnlocked;
+    });
+  };
+
+  const handleSelectLevel = (nextLevel) => {
+    if (!isLeveledMode(mode) || nextLevel > maxUnlockedLevel) return;
+    setLevel(nextLevel);
+    resetGame(false, nextLevel);
   };
 
   const triggerError = (msg) => {
@@ -103,6 +152,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
   const moveToNextI = () => {
     const nextI = iIndex + 1;
     if (nextI >= data.length) {
+      unlockNextLevel();
       setIsComplete(true);
       setActivePseudoLine(1);
       logAction('SORT COMPLETE', 'text-amber-500 font-bold');
@@ -200,6 +250,29 @@ export default function InsertionSortGamePage({ mode, onExit }) {
               )}
             </div>
           </div>
+
+          {isLeveledMode(mode) && (
+            <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Level {level} · Array Size {LEVEL_ARRAYS[level].length}
+              </div>
+              <div className="flex gap-2">
+                {[1, 2, 3].map((lvl) => (
+                  <button
+                    key={lvl}
+                    onClick={() => handleSelectLevel(lvl)}
+                    disabled={lvl > maxUnlockedLevel}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors
+                      ${lvl === level ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300'}
+                      ${lvl > maxUnlockedLevel ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}
+                    `}
+                  >
+                    L{lvl}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="h-64 flex items-end justify-center gap-3 mb-6">
             {data.map((val, idx) => (

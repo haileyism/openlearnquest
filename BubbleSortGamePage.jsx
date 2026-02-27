@@ -32,16 +32,21 @@ export default function BubbleSortGamePage({ mode, onExit }) {
 
   const instruction = useMemo(() => {
     const isTutorial = mode === 'tutorial';
-    if (isComplete) return isTutorial ? 'Sorted! Bubble sort is done when one full pass makes no swaps. Every element is now in ascending order. Great job!' : 'Sorted! Bubble Sort complete.';
+    const isTraining = mode === 'training';
+    if (isComplete) {
+      if (isTutorial) return 'Sorted! Bubble sort is done when one full pass makes no swaps. Every element is now in ascending order. Great job!';
+      if (isTraining) return 'Sorted! Well done.';
+      return 'Sorted! Bubble Sort complete.';
+    }
     const boundary = data.length - passIndex - 1;
     if (selectedPair) {
-      return isTutorial
-        ? `You’re looking at the pair at indices ${compareIndex} and ${compareIndex + 1}. In bubble sort we compare adjacent elements: if the left is greater than the right, we swap so the larger value moves right. Choose “Swap Pair” if ${data[compareIndex]} > ${data[compareIndex + 1]}, otherwise “Keep Order”.`
-        : `Decide the pair at indices ${compareIndex} and ${compareIndex + 1}: swap or keep order.`;
+      if (isTutorial) return `You’re looking at the pair at indices ${compareIndex} and ${compareIndex + 1}. In bubble sort we compare adjacent elements: if the left is greater than the right, we swap so the larger value moves right. Choose “Swap Pair” if ${data[compareIndex]} > ${data[compareIndex + 1]}, otherwise “Keep Order”.`;
+      if (isTraining) return 'Compare this pair: swap if left > right, otherwise keep order.';
+      return `Decide the pair at indices ${compareIndex} and ${compareIndex + 1}: swap or keep order.`;
     }
-    return isTutorial
-      ? `Pass ${passIndex + 1}: We scan left to right, comparing adjacent pairs. The active pair is at indices ${compareIndex} and ${compareIndex + 1}. We only look at indices 0 to ${boundary} in this pass (larger indices are already sorted). Click one of the two highlighted bars to select this pair, then choose swap or keep order.`
-      : `Pass ${passIndex + 1}: select a bar from the active pair (${compareIndex}, ${compareIndex + 1}). Range ends at index ${boundary}.`;
+    if (isTutorial) return `Pass ${passIndex + 1}: We scan left to right, comparing adjacent pairs. The active pair is at indices ${compareIndex} and ${compareIndex + 1}. We only look at indices 0 to ${boundary} in this pass (larger indices are already sorted). Click one of the two highlighted bars to select this pair, then choose swap or keep order.`;
+    if (isTraining) return 'Compare adjacent pairs in this pass. Select the highlighted pair, then choose swap or keep order.';
+    return `Pass ${passIndex + 1}: select a bar from the active pair (${compareIndex}, ${compareIndex + 1}). Range ends at index ${boundary}.`;
   }, [compareIndex, data, mode, passIndex, selectedPair, isComplete]);
 
   const logAction = (msg, cls = 'text-slate-400') => {
@@ -68,8 +73,12 @@ export default function BubbleSortGamePage({ mode, onExit }) {
 
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
-    const tutorialMsg = mode === 'tutorial' ? `Tutorial: ${msg} In tutorial mode you have unlimited lives—use the hints above to decide whether this pair should be swapped (left > right) or kept in order.` : msg;
-    setModal({ open: true, msg: tutorialMsg });
+    const modalMsg = mode === 'tutorial'
+      ? `Tutorial: ${msg} In tutorial mode you have unlimited lives—use the hints above to decide whether this pair should be swapped (left > right) or kept in order.`
+      : mode === 'training'
+        ? 'Training: Compare adjacent pair. Swap if left > right.'
+        : 'Bubble: Swap adjacent pair only when left > right.';
+    setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
       setLives((l) => {

@@ -51,19 +51,26 @@ export default function QuickSortGamePage({ mode, onExit }) {
 
   const instruction = useMemo(() => {
     const isTutorial = mode === 'tutorial';
-    if (isComplete) return isTutorial ? 'Sorted! Quick sort is done when every partition has at most one element. The pivot is always in its final position. Well done!' : 'Sorted! Quick Sort complete.';
-    if (!currentRange) return isTutorial ? 'No active partition—wait for the next range to be processed.' : 'No active partition.';
-
+    const isTraining = mode === 'training';
+    if (isComplete) {
+      if (isTutorial) return 'Sorted! Quick sort is done when every partition has at most one element. The pivot is always in its final position. Well done!';
+      if (isTraining) return 'Sorted! Well done.';
+      return 'Sorted! Quick Sort complete.';
+    }
+    if (!currentRange) {
+      if (isTutorial) return 'No active partition—wait for the next range to be processed.';
+      if (isTraining) return 'Waiting for next partition.';
+      return 'No active partition.';
+    }
     const { i, j, phase } = partitionState;
     if (phase === 'pivotSwap') {
-      return isTutorial
-        ? `Partition scan is complete. All elements less than the pivot (${pivotValue}) are to the left of index i+1. Now we place the pivot in its final position by swapping it from index ${currentRange.r} to index ${i + 1}. Click “Swap Pivot with arr[i + 1]”.`
-        : `Partition scan finished. Now swap pivot ${pivotValue} at index ${currentRange.r} with index ${i + 1}.`;
+      if (isTutorial) return `Partition scan is complete. All elements less than the pivot (${pivotValue}) are to the left of index i+1. Now we place the pivot in its final position by swapping it from index ${currentRange.r} to index ${i + 1}. Click “Swap Pivot with arr[i + 1]”.`;
+      if (isTraining) return 'Place the pivot in its final position.';
+      return `Partition scan finished. Now swap pivot ${pivotValue} at index ${currentRange.r} with index ${i + 1}.`;
     }
-
-    return isTutorial
-      ? `We’re partitioning the range [${currentRange.l}..${currentRange.r}] with pivot ${pivotValue} (at the end). For each element arr[j] = ${data[j]} we ask: is it less than the pivot? If yes, we extend the “small” region and swap. Choose “True” if ${data[j]} < ${pivotValue}, otherwise “False”.`
-      : `Range [${currentRange.l}..${currentRange.r}], pivot ${pivotValue}. Decide whether arr[${j}] (${data[j]}) is < pivot.`;
+    if (isTutorial) return `We’re partitioning the range [${currentRange.l}..${currentRange.r}] with pivot ${pivotValue} (at the end). For each element arr[j] = ${data[j]} we ask: is it less than the pivot? If yes, we extend the “small” region and swap. Choose “True” if ${data[j]} < ${pivotValue}, otherwise “False”.`;
+    if (isTraining) return 'For each element, decide if it’s less than the pivot.';
+    return `Range [${currentRange.l}..${currentRange.r}], pivot ${pivotValue}. Decide whether arr[${j}] (${data[j]}) is < pivot.`;
   }, [currentRange, data, isComplete, mode, partitionState, pivotValue]);
 
   const logAction = (msg, cls = 'text-slate-400') => {
@@ -89,8 +96,12 @@ export default function QuickSortGamePage({ mode, onExit }) {
 
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
-    const tutorialMsg = mode === 'tutorial' ? `Tutorial: ${msg} In tutorial mode you have unlimited lives. Use the instruction above to decide whether the current element is less than the pivot.` : msg;
-    setModal({ open: true, msg: tutorialMsg });
+    const modalMsg = mode === 'tutorial'
+      ? `Tutorial: ${msg} In tutorial mode you have unlimited lives. Use the instruction above to decide whether the current element is less than the pivot.`
+      : mode === 'training'
+        ? 'Training: Compare to pivot. Move left only if value < pivot.'
+        : 'Quick: Move left only when value < pivot.';
+    setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
       setLives((l) => {

@@ -28,20 +28,25 @@ export default function InsertionSortGamePage({ mode, onExit }) {
 
   const instruction = useMemo(() => {
     const isTutorial = mode === 'tutorial';
-    if (isComplete) return isTutorial ? 'Sorted! You’ve finished this run. In insertion sort, the array is sorted when every element has been placed in order. Well done!' : 'Sorted! Mastery achieved.';
+    const isTraining = mode === 'training';
+    if (isComplete) {
+      if (isTutorial) return 'Sorted! You’ve finished this run. In insertion sort, the array is sorted when every element has been placed in order. Well done!';
+      if (isTraining) return 'Sorted! Well done.';
+      return 'Sorted! Mastery achieved.';
+    }
     if (jIndex <= 0) {
-      return isTutorial
-        ? `Inner loop done for this element. When j reaches 0 or the element is in the right place, we stop moving it left. Click Continue to advance the outer loop to the next index i = ${iIndex + 1}.`
-        : `Inner loop finished for i = ${iIndex}. Click Continue.`;
+      if (isTutorial) return `Inner loop done for this element. When j reaches 0 or the element is in the right place, we stop moving it left. Click Continue to advance the outer loop to the next index i = ${iIndex + 1}.`;
+      if (isTraining) return 'Current element is in place. Continue to the next.';
+      return `Inner loop finished for i = ${iIndex}. Click Continue.`;
     }
     if (data[jIndex - 1] > data[jIndex]) {
-      return isTutorial
-        ? `The value at index ${jIndex} (${data[jIndex]}) is smaller than the one to its left (${data[jIndex - 1]}). In insertion sort we always move the current element left until it’s in sorted order. Drag the bar at index ${jIndex} onto index ${jIndex - 1} to swap them.`
-        : `Drag index ${jIndex} (value ${data[jIndex]}) onto index ${jIndex - 1} (value ${data[jIndex - 1]}) to swap.`;
+      if (isTutorial) return `The value at index ${jIndex} (${data[jIndex]}) is smaller than the one to its left (${data[jIndex - 1]}). In insertion sort we always move the current element left until it’s in sorted order. Drag the bar at index ${jIndex} onto index ${jIndex - 1} to swap them.`;
+      if (isTraining) return 'This element is out of order—swap it left into sorted position.';
+      return `Drag index ${jIndex} (value ${data[jIndex]}) onto index ${jIndex - 1} (value ${data[jIndex - 1]}) to swap.`;
     }
-    return isTutorial
-      ? `The value at index ${jIndex} (${data[jIndex]}) is already greater than or equal to the one at ${jIndex - 1} (${data[jIndex - 1]}), so no swap is needed. Click Continue to move the inner loop forward.`
-      : `No swap needed at indices ${jIndex - 1} and ${jIndex}. Click Continue.`;
+    if (isTutorial) return `The value at index ${jIndex} (${data[jIndex]}) is already greater than or equal to the one at ${jIndex - 1} (${data[jIndex - 1]}), so no swap is needed. Click Continue to move the inner loop forward.`;
+    if (isTraining) return 'Order is correct here. Continue.';
+    return `No swap needed at indices ${jIndex - 1} and ${jIndex}. Click Continue.`;
   }, [data, iIndex, isComplete, jIndex, mode]);
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -74,8 +79,12 @@ export default function InsertionSortGamePage({ mode, onExit }) {
 
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
-    const tutorialMsg = mode === 'tutorial' ? `Tutorial: ${msg} Take your time—in tutorial mode you have unlimited lives and we’re here to help you learn each step.` : msg;
-    setModal({ open: true, msg: tutorialMsg });
+    const modalMsg = mode === 'tutorial'
+      ? `Tutorial: ${msg} Take your time—in tutorial mode you have unlimited lives and we’re here to help you learn each step.`
+      : mode === 'training'
+        ? 'Training: Keep left side sorted. Swap only if left > right.'
+        : 'Insertion: Swap only if left > right.';
+    setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
       setLives((l) => {

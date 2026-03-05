@@ -49,6 +49,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
   const [repeats, setRepeats] = useState(1);
   const [activityLog, setActivityLog] = useState([]);
   const [modal, setModal] = useState({ open: false, msg: '' });
+  const [introOpen, setIntroOpen] = useState(mode === 'training' || mode === 'tutorial');
   const [isComplete, setIsComplete] = useState(false);
   const [activePseudoLine, setActivePseudoLine] = useState(3);
 
@@ -58,6 +59,10 @@ export default function InsertionSortGamePage({ mode, onExit }) {
     }, 1000);
     return () => clearInterval(interval);
   }, [isComplete]);
+
+  useEffect(() => {
+    setIntroOpen(mode === 'training' || mode === 'tutorial');
+  }, [mode]);
 
   const instruction = useMemo(() => {
     const isTutorial = mode === 'tutorial';
@@ -81,6 +86,19 @@ export default function InsertionSortGamePage({ mode, onExit }) {
     if (isTraining) return 'Order is correct here. Continue.';
     return `No swap needed at indices ${jIndex - 1} and ${jIndex}. Click Continue.`;
   }, [data, iIndex, isComplete, jIndex, mode]);
+
+  const introContent = useMemo(() => {
+    if (mode === 'tutorial') {
+      return {
+        title: 'Insertion Sort Tutorial',
+        subtitle: 'How the algorithm and this game work',
+      };
+    }
+    return {
+      title: 'Insertion Sort Training Intro',
+      subtitle: 'Quick guide before you start',
+    };
+  }, [mode]);
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   const getNumberRelation = (a, b) => {
@@ -364,6 +382,14 @@ export default function InsertionSortGamePage({ mode, onExit }) {
                 <span className="font-bold text-green-600">+{score}</span>
               </div>
             </div>
+            {(mode === 'training' || mode === 'tutorial') && (
+              <button
+                onClick={() => setIntroOpen(true)}
+                className="mt-5 w-full py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50"
+              >
+                Show Intro Again
+              </button>
+            )}
           </div>
 
           <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
@@ -409,6 +435,39 @@ export default function InsertionSortGamePage({ mode, onExit }) {
             >
               I Understand
             </button>
+          </div>
+        </div>
+      )}
+
+      {introOpen && (mode === 'training' || mode === 'tutorial') && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">{introContent.title}</h3>
+            <p className="text-slate-500 mb-6">{introContent.subtitle}</p>
+
+            <div className="space-y-4 text-slate-700 leading-relaxed">
+              <p>
+                Insertion sort builds a sorted section from left to right. At each step, it takes the current value and moves it left until it reaches the correct position.
+              </p>
+              <p>
+                In this game, the bar with the <span className="font-bold text-indigo-600">indigo ring</span> is the current pointer (<span className="font-mono">j</span>). The bar with the <span className="font-bold text-amber-600">amber ring</span> is the compare target (<span className="font-mono">j-1</span>).
+              </p>
+              <p>
+                Bars on the left with a solid indigo color are the sorted zone (already placed correctly). Your goal is to keep expanding this sorted zone until the whole array is sorted.
+              </p>
+              <p>
+                If the current value is smaller than the left value, drag the current bar onto the left bar to swap. If no swap is needed, click <span className="font-bold">Continue</span> to move to the next step.
+              </p>
+            </div>
+
+            <div className="flex justify-end mt-8">
+              <button
+                onClick={() => setIntroOpen(false)}
+                className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
+              >
+                Start Lesson
+              </button>
+            </div>
           </div>
         </div>
       )}

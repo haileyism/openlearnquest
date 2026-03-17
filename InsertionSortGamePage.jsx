@@ -401,14 +401,6 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             </h4>
             <div className="space-y-3 text-lg">
               <div className="flex justify-between">
-                <span className="text-slate-500">Repeats</span>
-                <span className="font-bold text-slate-900">{repeats}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Comparisons</span>
-                <span className="font-bold text-slate-900">{comparisons}</span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-slate-500">Score</span>
                 <span className="font-bold text-green-600">+{score}</span>
               </div>
@@ -512,4 +504,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     </div>
   );
 }
+
+
+
 

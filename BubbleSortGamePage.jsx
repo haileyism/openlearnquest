@@ -345,11 +345,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
             <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
               <Trophy size={18} className="text-amber-500" /> Analytics
             </h4>
-            <div className="space-y-4 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">Repeats</span><span className="font-bold text-slate-900">{repeats}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Comparisons</span><span className="font-bold text-slate-900">{comparisons}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div>
-            </div>
+            <div className="space-y-4 text-sm"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
           </div>
 
           <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
@@ -396,4 +392,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+
+
+
 

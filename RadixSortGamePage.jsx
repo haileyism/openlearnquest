@@ -208,11 +208,7 @@ export default function RadixSortGamePage({ mode, onExit }) {
         <div className="lg:w-80 space-y-6">
           <div className="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
             <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Analytics</h4>
-            <div className="space-y-4 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">Moves</span><span className="font-bold text-slate-900">{moves}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Pass</span><span className="font-bold text-slate-900">{placeIdx + 1}/{PLACES.length}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div>
-            </div>
+            <div className="space-y-4 text-sm"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
           </div>
           <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
             <h4 className="font-bold mb-4 text-xs uppercase tracking-widest text-indigo-400">Pseudocode Trace</h4>
@@ -240,4 +236,7 @@ export default function RadixSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+
+
+
 

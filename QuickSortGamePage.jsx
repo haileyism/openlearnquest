@@ -98,13 +98,13 @@ export default function QuickSortGamePage({ mode, onExit }) {
     }
     const { i, j, phase } = partitionState;
     if (phase === 'pivotSwap') {
-      if (isTutorial) return `Partition scan is complete. All elements less than the pivot (${pivotValue}) are to the left of index i+1. Now we place the pivot in its final position by swapping it from index ${currentRange.r} to index ${i + 1}. Click “Swap Pivot with arr[i + 1]”.`;
+      if (isTutorial) return `Partition scan is complete. All elements <= pivot (${pivotValue}) are to the left of index i+1. Now place the pivot in final position by swapping it from index ${currentRange.r} to index ${i + 1}.`;
       if (isTraining) return 'Place the pivot in its final position.';
       return `Partition scan finished. Now swap pivot ${pivotValue} at index ${currentRange.r} with index ${i + 1}.`;
     }
-    if (isTutorial) return `We’re partitioning the range [${currentRange.l}..${currentRange.r}] with pivot ${pivotValue} (at the end). For each element arr[j] = ${data[j]} we ask: is it less than the pivot? If yes, we extend the “small” region and swap. Choose “True” if ${data[j]} < ${pivotValue}, otherwise “False”.`;
-    if (isTraining) return 'For each element, decide if it’s less than the pivot.';
-    return `Range [${currentRange.l}..${currentRange.r}], pivot ${pivotValue}. Decide whether arr[${j}] (${data[j]}) is < pivot.`;
+    if (isTutorial) return `We’re partitioning [${currentRange.l}..${currentRange.r}] with pivot ${pivotValue}. For each arr[j] = ${data[j]}, check arr[j] <= pivot. If true, increment i and swap arr[i] with arr[j].`;
+    if (isTraining) return 'For each element, decide if it is <= pivot.';
+    return `Range [${currentRange.l}..${currentRange.r}], pivot ${pivotValue}. Decide whether arr[${j}] (${data[j]}) is <= pivot.`;
   }, [currentRange, data, isComplete, mode, partitionState, pivotValue]);
 
   const logAction = (msg, cls = 'text-slate-400') => {
@@ -160,10 +160,10 @@ export default function QuickSortGamePage({ mode, onExit }) {
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
     const modalMsg = mode === 'tutorial'
-      ? `Tutorial: ${msg} In tutorial mode you have unlimited lives. Use the instruction above to decide whether the current element is less than the pivot.`
+      ? `Tutorial: ${msg} Use partition rule: if A[j] <= pivot, increment i and swap A[i] with A[j].`
       : mode === 'training'
-        ? 'Training: Compare to pivot. Move left only if value < pivot.'
-        : 'Quick: Move left only when value < pivot.';
+        ? 'Training: Compare to pivot. Move left when value <= pivot.'
+        : 'Quick: Move left when value <= pivot.';
     setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
@@ -214,7 +214,7 @@ export default function QuickSortGamePage({ mode, onExit }) {
     setActivePseudoLine(2);
   };
 
-  const handleDecision = (isLessDecision) => {
+  const handleDecision = (isLeDecision) => {
     if (isComplete || !currentRange || partitionState.phase !== 'compare') return;
 
     const { l, r } = currentRange;
@@ -226,14 +226,14 @@ export default function QuickSortGamePage({ mode, onExit }) {
     }
 
     const currentVal = data[j];
-    const isActuallyLess = currentVal < pivotValue;
+    const isActuallyLe = currentVal <= pivotValue;
     const relation = getRelation(currentVal, pivotValue);
     setComparisons((c) => c + 1);
     setActivePseudoLine(5);
 
-    if (isLessDecision !== isActuallyLess) {
+    if (isLeDecision !== isActuallyLe) {
       triggerError(
-        `${currentVal} is ${relation} than pivot ${pivotValue}. This comparison should evaluate to ${isActuallyLess ? 'true' : 'false'}.`,
+        `${currentVal} is ${relation} than pivot ${pivotValue}. This comparison should evaluate to ${isActuallyLe ? 'true' : 'false'} for (A[j] <= pivot).`,
       );
       return;
     }
@@ -241,15 +241,15 @@ export default function QuickSortGamePage({ mode, onExit }) {
     let nextData = [...data];
     let nextI = i;
 
-    if (isActuallyLess) {
+    if (isActuallyLe) {
       nextI = i + 1;
       [nextData[nextI], nextData[j]] = [nextData[j], nextData[nextI]];
       setData(nextData);
       setScore((s) => s + 5);
       setActivePseudoLine(7);
-      logAction(`Moved ${currentVal} left of pivot boundary`, 'text-cyan-400');
+      logAction(`A[j]=${currentVal} <= pivot, swapped with A[i]`, 'text-cyan-400');
     } else {
-      logAction(`Kept ${currentVal} on right side of pivot`, 'text-slate-400');
+      logAction(`A[j]=${currentVal} > pivot, kept on right side`, 'text-slate-400');
     }
 
     const nextJ = j + 1;
@@ -282,12 +282,14 @@ export default function QuickSortGamePage({ mode, onExit }) {
           <div className="flex justify-between items-center mb-8">
             <div className="flex gap-4">
               <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Time: {formatTime(timer)}</div>
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              {mode !== 'training' && (
+                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              )}
             </div>
             <div className="flex gap-2 text-red-500">
-              {mode === 'training' || mode === 'tutorial' ? (
+              {mode === 'tutorial' ? (
                 <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
-                  {mode === 'tutorial' ? 'Tutorial • Unlimited Lives' : 'Unlimited Lives'}
+                  Tutorial • Unlimited Lives
                 </span>
               ) : (
                 Array.from({ length: 5 }).map((_, i) => (
@@ -343,6 +345,17 @@ export default function QuickSortGamePage({ mode, onExit }) {
                   >
                     {val}
                   </div>
+                  {!isComplete && (
+                    <div className="min-h-[12px] text-[9px] font-bold uppercase tracking-tight text-slate-500">
+                      {[
+                        currentRange && idx === currentRange.l ? 'p' : '',
+                        idx === partitionState.j && partitionState.phase === 'compare' && partitionState.j < (currentRange?.r ?? -1) ? 'j' : '',
+                        idx === partitionState.i ? 'i' : '',
+                        currentRange && idx === partitionState.i + 1 ? 'i+1' : '',
+                        idx === pivotIndex ? 'pivot,r' : '',
+                      ].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
                   <span className="text-[10px] font-bold text-slate-400 uppercase">idx {idx}</span>
                 </div>
               );
@@ -357,13 +370,13 @@ export default function QuickSortGamePage({ mode, onExit }) {
                     onClick={() => handleDecision(true)}
                     className="px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700"
                   >
-                    arr[j] &lt; pivot (True)
+                    A[j] &lt;= pivot (True)
                   </button>
                   <button
                     onClick={() => handleDecision(false)}
                     className="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50"
                   >
-                    arr[j] &gt;= pivot (False)
+                    A[j] &gt; pivot (False)
                   </button>
                 </div>
               ) : (
@@ -414,22 +427,22 @@ export default function QuickSortGamePage({ mode, onExit }) {
 
           <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
             <h4 className="font-bold mb-4 text-xs uppercase tracking-widest text-indigo-400">Pseudocode Trace</h4>
-            <pre className="text-[11px] text-indigo-200 leading-relaxed font-mono">
-              <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: quickSort(low, high)</span>
+            <pre className="text-[13px] text-indigo-200 leading-relaxed font-mono">
+              <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: QUICKSORT(A, p, r)</span>
               {'\n'}
-              <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2:   pivot = arr[high]</span>
+              <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2:   if p &lt; r</span>
               {'\n'}
-              <span className={activePseudoLine === 3 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>3:   i = low - 1</span>
+              <span className={activePseudoLine === 3 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>3:     q = PARTITION(A, p, r)</span>
               {'\n'}
-              <span className={activePseudoLine === 4 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>4:   for j = low to high - 1</span>
+              <span className={activePseudoLine === 4 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>4: PARTITION(A, p, r): x = A[r], i = p - 1</span>
               {'\n'}
-              <span className={activePseudoLine === 5 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>5:     if arr[j] &lt; pivot</span>
+              <span className={activePseudoLine === 5 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>5: for j = p to r - 1, if A[j] &lt;= x</span>
               {'\n'}
               <span className={activePseudoLine === 6 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>6:       i = i + 1</span>
               {'\n'}
-              <span className={activePseudoLine === 7 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>7:       swap(arr[i], arr[j])</span>
+              <span className={activePseudoLine === 7 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>7:       swap(A[i], A[j])</span>
               {'\n'}
-              <span className={activePseudoLine === 8 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>8:   swap(arr[i + 1], arr[high])</span>
+              <span className={activePseudoLine === 8 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>8: swap(A[i + 1], A[r]); return i + 1</span>
             </pre>
           </div>
 

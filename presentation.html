@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SortLogic Elite Midterm Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #f1f5f9;
+            display: grid;
+            gap: 30px;
+            grid-template-columns: 1fr;
+            margin: 0;
+            padding: 40px 0;
+            place-items: center;
+        }
+
+        .slide-container {
+            align-items: center;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(30, 41, 59, 0.1);
+            display: flex;
+            flex-direction: column;
+            font-family: 'Lato', sans-serif;
+            height: 720px;
+            justify-content: center;
+            overflow: hidden;
+            padding: 60px;
+            position: relative;
+            width: 1280px;
+        }
+
+        .slide-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 100% 0%, rgba(79, 70, 229, 0.04) 0%, transparent 40%);
+            z-index: 0;
+        }
+
+        .slide-container > * { position: relative; z-index: 1; }
+
+        h1, h2, h3 { color: #1e293b; font-family: 'Poppins', sans-serif; font-weight: 700; margin: 0; }
+        .slide-title {
+            font-size: 44px;
+            margin-bottom: 40px;
+            text-align: left;
+            width: 100%;
+            border-left: 8px solid #4f46e5;
+            padding-left: 20px;
+        }
+        p, li { font-size: 18px; color: #475569; line-height: 1.6; }
+        
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; width: 100%; align-items: center; }
+
+        .image-wrapper { 
+            border-radius: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+            width: 100%; 
+            border: 1px solid #e2e8f0;
+            background: #fff;
+        }
+        .image-wrapper img { width: 100%; height: auto; display: block; }
+
+        .highlight-box {
+            background: #4f46e5;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 25px;
+        }
+        .highlight-box p { color: white; margin: 0; font-weight: 600; }
+
+        .styled-list { list-style: none; padding: 0; width: 100%; }
+        .styled-list li { margin-bottom: 18px; padding-left: 45px; position: relative; }
+        .styled-list li i { position: absolute; left: 0; top: 4px; color: #4f46e5; font-size: 24px; }
+
+        .full-screenshot {
+            width: 100%;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+        .full-screenshot img { width: 100%; height: 100%; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title -->
+<div class="slide-container">
+    <div style="text-align: center;">
+        <h1 style="font-size: 72px; margin-bottom: 10px;">SortLogic <span style="color: #4f46e5;">Elite</span></h1>
+        <p style="font-size: 28px; color: #64748b; margin-bottom: 60px;">Gamified Educational Lab Prototype for Sorting Algorithms</p>
+        <p><strong>Hailey Pang</strong> | Midterm Presentation | Prof. Lama Hamandi</p>
+    </div>
+</div>
+
+<!-- Slide 2: Problem + Motivation -->
+<div class="slide-container">
+    <h2 class="slide-title">Problem Definition & Motivation</h2>
+    <div class="two-column">
+        <div>
+            <h3>Why this project matters</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-circle-question"></i> <strong>Learning Gap:</strong> Students often watch sorting animations but struggle to execute algorithm logic themselves.</li>
+                <li><i class="fa-solid fa-brain"></i> <strong>Cognitive Need:</strong> Procedural mastery requires active decision-making, not passive viewing.</li>
+                <li><i class="fa-solid fa-school"></i> <strong>Educational Goal:</strong> Build a system that teaches algorithm reasoning through interaction, feedback, and progression.</li>
+            </ul>
+            <div class="highlight-box">
+                <p>Core motivation: turn “seeing sorting” into “doing sorting correctly under constraints.”</p>
+            </div>
+        </div>
+        <div class="image-wrapper">
+            <img src="presentation-assets/slide3-modes.png" alt="Mode selection demonstrating scaffolded learning paths">
+        </div>
+    </div>
+</div>
+
+<!-- Slide 3: Literature Review -->
+<div class="slide-container">
+    <h2 class="slide-title">Literature Review & Background</h2>
+    <div class="two-column">
+        <div>
+            <h3>Existing tool categories</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-play"></i> <strong>Passive demonstrations:</strong> e.g., Toptal sorting animations, The Sound of Sorting. Strong visualization, low user agency.</li>
+                <li><i class="fa-solid fa-sliders"></i> <strong>Interactive visualizers:</strong> e.g., SortVision, SortLGO, open-source visualizers. Adjustable controls, still mostly observational.</li>
+                <li><i class="fa-solid fa-gamepad"></i> <strong>Gamified systems:</strong> e.g., SortingLab and mini-games. Better participation, often limited in algorithm breadth.</li>
+            </ul>
+        </div>
+        <div>
+            <h3>Positioning of this project</h3>
+            <p>This project combines all three strengths in one system:</p>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-eye"></i> Clear visuals + pseudocode mapping</li>
+                <li><i class="fa-solid fa-gears"></i> Structured modes and progression controls</li>
+                <li><i class="fa-solid fa-hand-pointer"></i> Mandatory user actions (comparisons/swaps/decisions)</li>
+            </ul>
+            <div class="highlight-box">
+                <p>Research gap addressed: high-agency, multi-algorithm practice platform with feedback and mastery tracking.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 4: Research Question -->
+<div class="slide-container">
+    <h2 class="slide-title">Research Question & Hypothesis</h2>
+    <div class="two-column">
+        <div>
+            <h3>Main Research Question</h3>
+            <p><strong>Can a gamified, multi-mode sorting system improve procedural understanding more effectively than observation-only tools?</strong></p>
+            <h3 style="margin-top: 24px;">Hypothesis</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-check"></i> Learners who actively perform algorithm steps will demonstrate better rule-level understanding.</li>
+                <li><i class="fa-solid fa-check"></i> Scaffolding (tutorial/training/regular) increases retention and supports transfer from guided to independent performance.</li>
+                <li><i class="fa-solid fa-check"></i> Progress-based unlocking motivates sustained engagement across algorithm families.</li>
+            </ul>
+        </div>
+        <div class="image-wrapper">
+            <img src="presentation-assets/slide4-tutorial-popup.png" alt="Tutorial popup showing explicit algorithm guidance">
+        </div>
+    </div>
+</div>
+
+<!-- Slide 5: Methodology -->
+<div class="slide-container">
+    <h2 class="slide-title">Methodology / System Design</h2>
+    <div class="two-column">
+        <div class="image-wrapper">
+            <img src="presentation-assets/slide5-engine.png" alt="Interactive insertion sort engine">
+        </div>
+        <div>
+            <h3>Design Approach</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-diagram-project"></i> <strong>Modular architecture:</strong> Component-per-algorithm with shared progression utilities.</li>
+                <li><i class="fa-solid fa-code-branch"></i> <strong>Pseudocode alignment:</strong> Every interaction step maps to algorithm rules.</li>
+                <li><i class="fa-solid fa-layer-group"></i> <strong>Mode scaffolding:</strong> Tutorial (detailed), Training (guided), Regular (constraint-based).</li>
+                <li><i class="fa-solid fa-ranking-star"></i> <strong>Level progression:</strong> 3 levels per mode with unlock-by-mastery and larger arrays.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 6: Progress -->
+<div class="slide-container">
+    <h2 class="slide-title">Progress & Implementation</h2>
+    <div class="two-column">
+        <div class="image-wrapper">
+            <img src="presentation-assets/slide2-hub.png" alt="Algorithm hub with 9 sorting games">
+        </div>
+        <div>
+            <h3>Current Implementation Status</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-check-circle"></i> Expanded from <strong>3 to 9 algorithms</strong>.</li>
+                <li><i class="fa-solid fa-check-circle"></i> Added <strong>functional progress tracking</strong> (local persistence + real percentages).</li>
+                <li><i class="fa-solid fa-check-circle"></i> Implemented <strong>mode-based scaffolding</strong> and interactive error feedback.</li>
+                <li><i class="fa-solid fa-check-circle"></i> Added lecture-style onboarding in insertion tutorial mode with visual pointer mapping.</li>
+            </ul>
+            <div class="highlight-box">
+                <p>Prototype is fully usable end-to-end for interactive sorting practice.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 7: Preliminary Insights -->
+<div class="slide-container">
+    <h2 class="slide-title">Preliminary Results / Insights</h2>
+    <div class="two-column">
+        <div>
+            <h3>Observed Learning Signals</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-arrow-up-right-dots"></i> Users can identify and correct algorithm rule violations with popup feedback.</li>
+                <li><i class="fa-solid fa-arrows-rotate"></i> Repeated guided practice improves step accuracy before entering regular mode.</li>
+                <li><i class="fa-solid fa-percent"></i> Progress percentages and level unlocking provide visible mastery milestones.</li>
+            </ul>
+            <p><strong>Interpretation:</strong> The design appears to promote procedural reasoning, not just visual familiarity.</p>
+        </div>
+        <div class="image-wrapper">
+            <img src="presentation-assets/slide6-error.png" alt="Error modal with explanatory feedback">
+        </div>
+    </div>
+</div>
+
+<!-- Slide 8: Future Plan -->
+<div class="slide-container">
+    <h2 class="slide-title">Future Plan & Feasibility</h2>
+    <div class="two-column">
+        <div>
+            <h3>Plan to Final Submission</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-calendar-week"></i> <strong>Week 1:</strong> Add user testing protocol and collect interaction logs.</li>
+                <li><i class="fa-solid fa-chart-line"></i> <strong>Week 2:</strong> Analyze outcomes by mode (error rate, completion speed, level progression).</li>
+                <li><i class="fa-solid fa-flask"></i> <strong>Week 3:</strong> Compare guided vs unguided pathways and refine UI feedback.</li>
+                <li><i class="fa-solid fa-file-lines"></i> <strong>Week 4:</strong> Finalize evaluation, report findings, polish presentation/demo.</li>
+            </ul>
+        </div>
+        <div>
+            <h3>Feasibility</h3>
+            <ul class="styled-list">
+                <li><i class="fa-solid fa-box-open"></i> Core system already implemented and stable.</li>
+                <li><i class="fa-solid fa-database"></i> Local progress infrastructure already in place.</li>
+                <li><i class="fa-solid fa-people-group"></i> Remaining work is mostly evaluation and analysis.</li>
+            </ul>
+            <div class="highlight-box">
+                <p>Risk level is low: major engineering milestones are complete; focus shifts to empirical validation.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide 9: Technology + Closing -->
+<div class="slide-container">
+    <h2 class="slide-title">Technical Stack & Closing</h2>
+    <div style="display: flex; gap: 30px; margin-top: 20px;">
+        <div style="flex: 1; background: #f8fafc; padding: 30px; border-radius: 16px; text-align: center;">
+            <i class="fa-brands fa-react" style="font-size: 50px; color: #61dafb;"></i>
+            <h3>React Componentry</h3>
+            <p>Reusable algorithm pages and modular UI states.</p>
+        </div>
+        <div style="flex: 1; background: #f8fafc; padding: 30px; border-radius: 16px; text-align: center;">
+            <i class="fa-solid fa-wind" style="font-size: 50px; color: #38bdf8;"></i>
+            <h3>Tailwind CSS</h3>
+            <p>Consistent visual language across all game modes.</p>
+        </div>
+        <div style="flex: 1; background: #f8fafc; padding: 30px; border-radius: 16px; text-align: center;">
+            <i class="fa-solid fa-code" style="font-size: 50px; color: #4f46e5;"></i>
+            <h3>Vite + Local Storage</h3>
+            <p>Fast development and persistent mastery tracking.</p>
+        </div>
+    </div>
+    <p style="margin-top: 28px; text-align: center; font-size: 22px; color: #4f46e5; font-weight: 700;">Thank you. Questions?</p>
+</div>
+
+</body>
+</html>

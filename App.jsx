@@ -60,6 +60,7 @@ export default function App() {
             {selectedAlgo === 'Insertion Sort' && (
               <InsertionSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}

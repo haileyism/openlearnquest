@@ -171,12 +171,14 @@ export default function MergeSortGamePage({ mode, onExit }) {
           <div className="flex justify-between items-center mb-8">
             <div className="flex gap-4">
               <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Time: {formatTime(timer)}</div>
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              {mode !== 'training' && (
+                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              )}
             </div>
             <div className="flex gap-2 text-red-500">
-              {mode === 'training' || mode === 'tutorial' ? (
+              {mode === 'tutorial' ? (
                 <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
-                  {mode === 'tutorial' ? 'Tutorial • Unlimited Lives' : 'Unlimited Lives'}
+                  Tutorial • Unlimited Lives
                 </span>
               ) : (
                 Array.from({ length: 5 }).map((_, idx) => (

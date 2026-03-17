@@ -34,7 +34,7 @@ const saveCompletedLevel = (mode, level) => {
   }
 };
 
-export default function InsertionSortGamePage({ mode, onExit }) {
+export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel(mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
@@ -99,6 +99,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
       subtitle: 'Quick guide before you start',
     };
   }, [mode]);
+  const introDiagramSrc = '/insertion-sort-intro.png';
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   const getNumberRelation = (a, b) => {
@@ -160,7 +161,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
     const modalMsg = mode === 'tutorial'
-      ? `Tutorial: ${msg} Take your time—in tutorial mode you have unlimited lives and we’re here to help you learn each step.`
+      ? `Tutorial: ${msg} Review the step and try again.`
       : mode === 'training'
         ? 'Training: Keep left side sorted. Swap only if left > right.'
         : 'Insertion: Swap only if left > right.';
@@ -218,6 +219,15 @@ export default function InsertionSortGamePage({ mode, onExit }) {
     setDragIndex(idx);
   };
 
+  const handleDragEnd = (idx) => {
+    if (isComplete) return;
+    // If drag ended without a valid onDrop action, treat it as an invalid move.
+    if (dragIndex === idx) {
+      setDragIndex(null);
+      triggerError('Invalid move. Follow pseudocode: drag only j onto j - 1 when a swap is required.');
+    }
+  };
+
   const handleDropSwap = (targetIdx) => {
     if (isComplete || dragIndex === null) return;
     const sourceIdx = dragIndex;
@@ -266,20 +276,23 @@ export default function InsertionSortGamePage({ mode, onExit }) {
               <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">
                 Time: {formatTime(timer)}
               </div>
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">
-                Mistakes: {mistakes}
-              </div>
+              {mode !== 'training' && (
+                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">
+                  Mistakes: {mistakes}
+                </div>
+              )}
             </div>
             <div className="flex gap-2 text-red-500">
-              {mode === 'training' || mode === 'tutorial' ? (
+              {mode === 'training' ? (
                 <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
-                  {mode === 'tutorial' ? 'Tutorial • Unlimited Lives' : 'Unlimited Lives'}
+                  Unlimited Lives
                 </span>
-              ) : (
+              ) : mode === 'regular' ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <Heart key={i} fill={i < lives ? 'currentColor' : 'none'} size={24} className={i >= lives ? 'text-slate-200' : ''} />
                 ))
-              )}
+              ) : null
+              }
             </div>
           </div>
 
@@ -315,6 +328,7 @@ export default function InsertionSortGamePage({ mode, onExit }) {
                 <div
                   draggable={!isComplete && idx === jIndex}
                   onDragStart={() => handleDragStart(idx)}
+                  onDragEnd={() => handleDragEnd(idx)}
                   onDragOver={(e) => {
                     if (idx === jIndex - 1) e.preventDefault();
                   }}
@@ -329,6 +343,15 @@ export default function InsertionSortGamePage({ mode, onExit }) {
                 >
                   {val}
                 </div>
+                {(idx === jIndex || idx === jIndex - 1) && !isComplete && (
+                  <span
+                    className={`text-[10px] font-bold ${
+                      idx === jIndex ? 'text-indigo-600' : 'text-amber-600'
+                    }`}
+                  >
+                    {idx === jIndex ? 'j' : 'j-1'}
+                  </span>
+                )}
                 <span className="text-[10px] font-bold text-slate-400 uppercase">idx {idx}</span>
               </div>
             ))}
@@ -359,6 +382,14 @@ export default function InsertionSortGamePage({ mode, onExit }) {
             >
               <RotateCcw size={18} /> Reset Level
             </button>
+            {onBackToMode && (
+              <button
+                onClick={onBackToMode}
+                className="px-6 py-2 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700"
+              >
+                Back to Modes
+              </button>
+            )}
             <button onClick={onExit} className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold">Exit</button>
           </div>
         </div>
@@ -450,13 +481,20 @@ export default function InsertionSortGamePage({ mode, onExit }) {
                 Insertion sort builds a sorted section from left to right. At each step, it takes the current value and moves it left until it reaches the correct position.
               </p>
               <p>
-                In this game, the bar with the <span className="font-bold text-indigo-600">indigo ring</span> is the current pointer (<span className="font-mono">j</span>). The bar with the <span className="font-bold text-amber-600">amber ring</span> is the compare target (<span className="font-mono">j-1</span>).
+                In this game, the bar with the <span className="font-bold text-indigo-600">indigo ring</span> is the current pointer (<span className="font-mono">j</span>). The left bar with the <span className="font-bold text-amber-600">amber ring</span> is the compare target (<span className="font-mono">j-1</span>).
               </p>
+              <div className="rounded-2xl border border-slate-200 overflow-hidden">
+                <img
+                  src={introDiagramSrc}
+                  alt="Insertion sort pointer example showing j and j-1"
+                  className="w-full h-auto"
+                />
+              </div>
               <p>
                 Bars on the left with a solid indigo color are the sorted zone (already placed correctly). Your goal is to keep expanding this sorted zone until the whole array is sorted.
               </p>
               <p>
-                If the current value is smaller than the left value, drag the current bar onto the left bar to swap. If no swap is needed, click <span className="font-bold">Continue</span> to move to the next step.
+                If the  <span className="font-bold text-indigo-600">current value</span> is smaller than the  <span className="font-bold text-amber-600">left value</span>, drag the current bar onto the left bar to swap. If no swap is needed, click <span className="font-bold">Continue</span> to move to the next step.
               </p>
             </div>
 

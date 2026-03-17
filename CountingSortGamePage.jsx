@@ -15,10 +15,11 @@ export default function CountingSortGamePage({ mode, onExit }) {
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel('counting', mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
   const [counts, setCounts] = useState(Array(MAX_VALUE + 1).fill(0));
-  const [output, setOutput] = useState([]);
+  const [output, setOutput] = useState(Array(LEVEL_ARRAYS[1].length).fill(null));
   const [phase, setPhase] = useState('count');
   const [scanIdx, setScanIdx] = useState(0);
-  const [writeVal, setWriteVal] = useState(0);
+  const [prefixIdx, setPrefixIdx] = useState(1);
+  const [placeIdx, setPlaceIdx] = useState(LEVEL_ARRAYS[1].length - 1);
   const [mistakes, setMistakes] = useState(0);
   const [lives, setLives] = useState(5);
   const [timer, setTimer] = useState(0);
@@ -39,10 +40,11 @@ export default function CountingSortGamePage({ mode, onExit }) {
     const arr = [...LEVEL_ARRAYS[targetLevel]];
     setData(arr);
     setCounts(Array(MAX_VALUE + 1).fill(0));
-    setOutput([]);
+    setOutput(Array(arr.length).fill(null));
     setPhase('count');
     setScanIdx(0);
-    setWriteVal(0);
+    setPrefixIdx(1);
+    setPlaceIdx(arr.length - 1);
     setMistakes(0);
     setLives(5);
     setTimer(0);
@@ -72,10 +74,10 @@ export default function CountingSortGamePage({ mode, onExit }) {
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
     const modalMsg = mode === 'tutorial'
-      ? `Tutorial: ${msg} Counting sort first records frequencies, then writes values in order.`
+      ? `Tutorial: ${msg} Follow counting sort in three steps: frequency count, prefix sums, then stable placement from right to left.`
       : mode === 'training'
-        ? 'Training: First count frequencies, then write values from low to high.'
-        : 'Counting: Build counts, then output in ascending value.';
+        ? 'Training: Count, prefix-sum, then place from right to left.'
+        : 'Counting: Use frequency, prefix, then stable backward placement.';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
@@ -101,60 +103,76 @@ export default function CountingSortGamePage({ mode, onExit }) {
     setCounts(nextCounts);
     setSteps((s) => s + 1);
     setScore((s) => s + 5);
-    setActivePseudoLine(2);
+    setActivePseudoLine(5);
 
     if (scanIdx + 1 >= data.length) {
-      setPhase('write');
-      setScanIdx(0);
-      setWriteVal(0);
-      setActivePseudoLine(3);
+      setPhase('prefix');
+      setPrefixIdx(1);
+      setActivePseudoLine(7);
       return;
     }
     setScanIdx((i) => i + 1);
   };
 
-  const getCurrentWritable = () => {
-    let v = writeVal;
-    while (v <= MAX_VALUE && counts[v] === 0) v += 1;
-    return v;
+  const handlePrefixBucket = (bucket) => {
+    if (isComplete || phase !== 'prefix') return;
+    if (bucket !== prefixIdx) {
+      triggerError(`Prefix step expects bucket ${prefixIdx}: C[${prefixIdx}] = C[${prefixIdx}] + C[${prefixIdx - 1}].`);
+      return;
+    }
+    const nextCounts = [...counts];
+    nextCounts[prefixIdx] = nextCounts[prefixIdx] + nextCounts[prefixIdx - 1];
+    setCounts(nextCounts);
+    setSteps((s) => s + 1);
+    setScore((s) => s + 6);
+    setActivePseudoLine(8);
+
+    if (prefixIdx >= MAX_VALUE) {
+      setPhase('place');
+      setPlaceIdx(data.length - 1);
+      setActivePseudoLine(10);
+      return;
+    }
+    setPrefixIdx((v) => v + 1);
   };
 
-  const handleWriteValue = (value) => {
-    if (isComplete || phase !== 'write') return;
-    const expected = getCurrentWritable();
-    if (expected > MAX_VALUE) return;
-    if (value !== expected) {
-      triggerError(`Next output should be ${expected}.`);
+  const handlePlaceBucket = (bucket) => {
+    if (isComplete || phase !== 'place') return;
+    const expectedValue = data[placeIdx];
+    if (bucket !== expectedValue) {
+      triggerError(`Placement step uses A[j]. Current j points to value ${expectedValue}, so use bucket ${expectedValue}.`);
       return;
     }
 
     const nextCounts = [...counts];
-    nextCounts[value] -= 1;
-    const nextOutput = [...output, value];
+    const nextOutput = [...output];
+    const outPos = nextCounts[expectedValue] - 1;
+    nextOutput[outPos] = expectedValue;
+    nextCounts[expectedValue] -= 1;
+
     setCounts(nextCounts);
     setOutput(nextOutput);
     setSteps((s) => s + 1);
     setScore((s) => s + 10);
-    setActivePseudoLine(4);
+    setActivePseudoLine(11);
 
-    let nextWrite = value;
-    while (nextWrite <= MAX_VALUE && nextCounts[nextWrite] === 0) nextWrite += 1;
-    setWriteVal(nextWrite);
-
-    if (nextOutput.length >= data.length) {
+    if (placeIdx <= 0) {
       setData(nextOutput);
       setIsComplete(true);
       saveCompletedLevel('counting', mode, level);
       unlockNextLevel();
-      setActivePseudoLine(5);
+      setActivePseudoLine(12);
+      return;
     }
+    setPlaceIdx((i) => i - 1);
   };
 
   const instruction = useMemo(() => {
     if (isComplete) return 'Sorted! Counting sort complete.';
-    if (phase === 'count') return `Count phase: current value is ${data[scanIdx]}. Increment its frequency bucket.`;
-    return `Write phase: output the smallest value with remaining count.`;
-  }, [isComplete, phase, data, scanIdx]);
+    if (phase === 'count') return `Step 1 (Build C): current value is A[j] = ${data[scanIdx]}. Increment C[A[j]].`;
+    if (phase === 'prefix') return `Step 2 (Prefix sums): update C[${prefixIdx}] = C[${prefixIdx}] + C[${prefixIdx - 1}].`;
+    return `Step 3 (Sort): j moves right-to-left. Current A[j] = ${data[placeIdx]}. Place into B[C[A[j]] - 1], then decrement C[A[j]].`;
+  }, [isComplete, phase, data, scanIdx, prefixIdx, placeIdx]);
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -163,12 +181,14 @@ export default function CountingSortGamePage({ mode, onExit }) {
           <div className="flex justify-between items-center mb-8">
             <div className="flex gap-4">
               <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Time: {formatTime(timer)}</div>
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              {mode !== 'training' && (
+                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              )}
             </div>
             <div className="flex gap-2 text-red-500">
-              {mode === 'training' || mode === 'tutorial' ? (
+              {mode === 'tutorial' ? (
                 <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
-                  {mode === 'tutorial' ? 'Tutorial • Unlimited Lives' : 'Unlimited Lives'}
+                  Tutorial • Unlimited Lives
                 </span>
               ) : (
                 Array.from({ length: 5 }).map((_, idx) => (
@@ -205,7 +225,14 @@ export default function CountingSortGamePage({ mode, onExit }) {
             <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">Input</h4>
             <div className="flex flex-wrap gap-2">
               {data.map((val, idx) => (
-                <div key={`${val}-${idx}`} className={`px-3 py-1 rounded-lg border text-sm font-bold ${phase === 'count' && idx === scanIdx ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                <div
+                  key={`${val}-${idx}`}
+                  className={`px-3 py-1 rounded-lg border text-sm font-bold ${
+                    (phase === 'count' && idx === scanIdx) || (phase === 'place' && idx === placeIdx)
+                      ? 'bg-amber-50 border-amber-400 text-amber-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-700'
+                  }`}
+                >
                   {val}
                 </div>
               ))}
@@ -218,7 +245,11 @@ export default function CountingSortGamePage({ mode, onExit }) {
               {counts.map((count, bucket) => (
                 <button
                   key={bucket}
-                  onClick={() => (phase === 'count' ? handleCountBucket(bucket) : handleWriteValue(bucket))}
+                  onClick={() => {
+                    if (phase === 'count') handleCountBucket(bucket);
+                    else if (phase === 'prefix') handlePrefixBucket(bucket);
+                    else handlePlaceBucket(bucket);
+                  }}
                   className="bg-slate-50 border border-slate-200 rounded-lg py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
                 >
                   {bucket}:{count}
@@ -231,7 +262,9 @@ export default function CountingSortGamePage({ mode, onExit }) {
             <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">Output</h4>
             <div className="flex flex-wrap gap-2 min-h-[40px]">
               {output.map((val, idx) => (
-                <div key={`${val}-${idx}`} className="px-3 py-1 rounded-lg border bg-emerald-50 border-emerald-300 text-emerald-700 text-sm font-bold">{val}</div>
+                <div key={`${val}-${idx}`} className="px-3 py-1 rounded-lg border bg-emerald-50 border-emerald-300 text-emerald-700 text-sm font-bold min-w-[34px] text-center">
+                  {val ?? '_'}
+                </div>
               ))}
             </div>
           </div>
@@ -254,18 +287,23 @@ export default function CountingSortGamePage({ mode, onExit }) {
             <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Analytics</h4>
             <div className="space-y-4 text-sm">
               <div className="flex justify-between"><span className="text-slate-500">Steps</span><span className="font-bold text-slate-900">{steps}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Output Size</span><span className="font-bold text-slate-900">{output.length}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Placed</span><span className="font-bold text-slate-900">{output.filter((v) => v !== null).length}/{output.length}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div>
             </div>
           </div>
           <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
             <h4 className="font-bold mb-4 text-xs uppercase tracking-widest text-indigo-400">Pseudocode Trace</h4>
             <pre className="text-[11px] text-indigo-200 leading-relaxed font-mono">
-              <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: create count[0..k] = 0</span>{'\n'}
-              <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2: for x in arr: count[x]++</span>{'\n'}
-              <span className={activePseudoLine === 3 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>3: for v = 0..k</span>{'\n'}
-              <span className={activePseudoLine === 4 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>4:   while count[v] &gt; 0: write v</span>{'\n'}
-              <span className={activePseudoLine === 5 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>5: done</span>
+              <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: let C[0..k] be a new array</span>{'\n'}
+              <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2: for i = 0 to k</span>{'\n'}
+              <span className={activePseudoLine === 3 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>3:   C[i] = 0</span>{'\n'}
+              <span className={activePseudoLine === 4 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>4: for j = 1 to A.length</span>{'\n'}
+              <span className={activePseudoLine === 5 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>5:   C[A[j]] = C[A[j]] + 1</span>{'\n'}
+              <span className={activePseudoLine === 7 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>7: for i = 1 to k</span>{'\n'}
+              <span className={activePseudoLine === 8 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>8:   C[i] = C[i] + C[i - 1]</span>{'\n'}
+              <span className={activePseudoLine === 10 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>10: for j = A.length down to 1</span>{'\n'}
+              <span className={activePseudoLine === 11 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>11:   B[C[A[j]] - 1] = A[j]</span>{'\n'}
+              <span className={activePseudoLine === 12 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>12:   C[A[j]] = C[A[j]] - 1</span>
             </pre>
           </div>
         </div>

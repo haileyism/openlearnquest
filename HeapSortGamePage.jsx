@@ -97,10 +97,10 @@ export default function HeapSortGamePage({ mode, onExit }) {
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
     const modalMsg = mode === 'tutorial'
-      ? `Tutorial: ${msg} Heap sort repeatedly swaps during heapify and extraction while maintaining max-heap property.`
+      ? `Tutorial: ${msg} In MAX-HEAPIFY, compare node i with LEFT(i) and RIGHT(i), choose largest, then exchange A[i] with A[largest].`
       : mode === 'training'
-        ? 'Training: Follow heap swap order from heapify/extract steps.'
-        : 'Heap: Apply required heap swap to maintain max-heap.';
+        ? 'Training: Follow BUILD-MAX-HEAP and MAX-HEAPIFY swap rules.'
+        : 'Heap: Apply MAX-HEAPIFY exchange A[i] with A[largest].';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
@@ -154,9 +154,9 @@ export default function HeapSortGamePage({ mode, onExit }) {
     if (isComplete) return 'Sorted! Heap sort complete.';
     if (!currentOp) return 'No pending operation.';
     if (mode === 'tutorial') {
-      return `Perform next swap for ${currentOp.kind}: indices ${currentOp.i} and ${currentOp.j}.`;
+      return `Perform next MAX-HEAPIFY exchange: A[i=${currentOp.i}] with ${currentOp.kind === 'heapify' ? `A[largest=${currentOp.j}]` : `A[end=${currentOp.j}]`}.`;
     }
-    return 'Select two bars for the next required heap swap.';
+    return 'Select two indices for the next required heap exchange.';
   }, [isComplete, currentOp, mode]);
 
   return (
@@ -166,12 +166,14 @@ export default function HeapSortGamePage({ mode, onExit }) {
           <div className="flex justify-between items-center mb-8">
             <div className="flex gap-4">
               <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Time: {formatTime(timer)}</div>
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              {mode !== 'training' && (
+                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+              )}
             </div>
             <div className="flex gap-2 text-red-500">
-              {mode === 'training' || mode === 'tutorial' ? (
+              {mode === 'tutorial' ? (
                 <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
-                  {mode === 'tutorial' ? 'Tutorial • Unlimited Lives' : 'Unlimited Lives'}
+                  Tutorial • Unlimited Lives
                 </span>
               ) : (
                 Array.from({ length: 5 }).map((_, idx) => (
@@ -221,6 +223,15 @@ export default function HeapSortGamePage({ mode, onExit }) {
                   >
                     {val}
                   </button>
+                  {!isComplete && currentOp && (
+                    <div className="min-h-[12px] text-[9px] font-bold uppercase tracking-tight text-slate-500">
+                      {[
+                        idx === currentOp.i ? 'i' : '',
+                        idx === currentOp.j ? (currentOp.kind === 'heapify' ? 'largest' : 'end') : '',
+                        idx === Math.max(0, currentOp.heapSize - 1) ? 'heap-size-1' : '',
+                      ].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
                   <span className="text-[10px] font-bold text-slate-400 uppercase">idx {idx}</span>
                 </div>
               );
@@ -251,12 +262,13 @@ export default function HeapSortGamePage({ mode, onExit }) {
           </div>
           <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
             <h4 className="font-bold mb-4 text-xs uppercase tracking-widest text-indigo-400">Pseudocode Trace</h4>
-            <pre className="text-[11px] text-indigo-200 leading-relaxed font-mono">
-              <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: build max-heap</span>{'\n'}
-              <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2: swap root with end</span>{'\n'}
-              <span className={activePseudoLine === 3 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>3: heapify reduced heap</span>{'\n'}
-              <span className={activePseudoLine === 4 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>4: repeat swaps</span>{'\n'}
-              <span className={activePseudoLine === 5 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>5: done</span>
+            <pre className="text-[13px] text-indigo-200 leading-relaxed font-mono">
+              <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: BUILD-MAX-HEAP(A)</span>{'\n'}
+              <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2: for i = floor(n/2)-1 downto 0</span>{'\n'}
+              <span className={activePseudoLine === 3 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>3:   MAX-HEAPIFY(A, i)</span>{'\n'}
+              <span className={activePseudoLine === 4 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>4: l = LEFT(i), r = RIGHT(i), largest = argmax</span>{'\n'}
+              <span className={activePseudoLine === 5 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>5: if largest != i, exchange A[i], A[largest]</span>{'\n'}
+              <span className={activePseudoLine === 6 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>6: then continue heapify / extract-max loop</span>
             </pre>
           </div>
         </div>

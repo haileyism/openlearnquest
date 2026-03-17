@@ -99,13 +99,13 @@ export default function HeapSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} In MAX-HEAPIFY, compare node i with LEFT(i) and RIGHT(i), choose largest, then exchange A[i] with A[largest].`
       : mode === 'training'
-        ? 'Training: Follow BUILD-MAX-HEAP and MAX-HEAPIFY swap rules.'
+        ? 'Guided Practice: Follow BUILD-MAX-HEAP and MAX-HEAPIFY swap rules.'
         : 'Heap: Apply MAX-HEAPIFY exchange A[i] with A[largest].';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -287,3 +287,4 @@ export default function HeapSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

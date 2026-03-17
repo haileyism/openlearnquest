@@ -78,13 +78,13 @@ export default function SelectionSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Selection sort scans the unsorted tail to find the minimum, then places it at index i.`
       : mode === 'training'
-        ? 'Training: Update minimum only when current value is smaller.'
+        ? 'Guided Practice: Update minimum only when current value is smaller.'
         : 'Selection: Keep smallest seen, then place it at i.';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -287,3 +287,4 @@ export default function SelectionSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

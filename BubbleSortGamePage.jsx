@@ -138,14 +138,14 @@ export default function BubbleSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} In tutorial mode you have unlimited lives—use the hints above to decide whether this pair should be swapped (left > right) or kept in order.`
       : mode === 'training'
-        ? 'Training: Compare adjacent pair. Swap if left > right.'
+        ? 'Guided Practice: Compare adjacent pair. Swap if left > right.'
         : 'Bubble: Swap adjacent pair only when left > right.';
     setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -396,3 +396,4 @@ export default function BubbleSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

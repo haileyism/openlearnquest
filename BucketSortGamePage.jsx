@@ -77,13 +77,13 @@ export default function BucketSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Bucket sort distributes values into ranges, sorts inside buckets, then gathers in bucket order.`
       : mode === 'training'
-        ? 'Training: Put values in range buckets, then gather buckets left to right.'
+        ? 'Guided Practice: Put values in range buckets, then gather buckets left to right.'
         : 'Bucket: Distribute by range, then collect in bucket order.';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -277,3 +277,4 @@ export default function BucketSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

@@ -162,14 +162,14 @@ export default function QuickSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Use partition rule: if A[j] <= pivot, increment i and swap A[i] with A[j].`
       : mode === 'training'
-        ? 'Training: Compare to pivot. Move left when value <= pivot.'
+        ? 'Guided Practice: Compare to pivot. Move left when value <= pivot.'
         : 'Quick: Move left when value <= pivot.';
     setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -477,3 +477,4 @@ export default function QuickSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

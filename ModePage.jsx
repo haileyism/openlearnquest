@@ -34,14 +34,14 @@ export default function ModePage({ algoName, onBack, onStart }) {
           <div className="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
             <GraduationCap size={32} />
           </div>
-          <h3 className="text-2xl font-bold mb-2 text-slate-800">Training Mode</h3>
+          <h3 className="text-2xl font-bold mb-2 text-slate-800">Guided Practice</h3>
           <ul className="text-slate-500 space-y-3 mb-8">
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> Infinite Lives</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> 3 Progressive Levels</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> Reasoning Pop-ups</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-green-500" size={18} /> Step-by-Step Hints</li>
           </ul>
-          <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold group-hover:bg-green-600 transition-colors">Enter Training</button>
+          <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold group-hover:bg-green-600 transition-colors">Start Guided Practice</button>
         </div>
 
         <div
@@ -51,14 +51,14 @@ export default function ModePage({ algoName, onBack, onStart }) {
           <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
             <Flame size={32} />
           </div>
-          <h3 className="text-2xl font-bold mb-2 text-slate-800">Regular Mode</h3>
+          <h3 className="text-2xl font-bold mb-2 text-slate-800">Challenge Mode</h3>
           <ul className="text-slate-500 space-y-3 mb-8">
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> 5 Lives Only</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> 3 Progressive Levels</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> Global Leaderboard</li>
             <li className="flex items-center gap-2"><CheckCircle2 className="text-red-500" size={18} /> Performance Analytics</li>
           </ul>
-          <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold group-hover:bg-red-600 transition-colors">Start Regular</button>
+          <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold group-hover:bg-red-600 transition-colors">Start Challenge</button>
         </div>
       </div>
     </div>

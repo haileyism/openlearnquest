@@ -95,7 +95,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
       };
     }
     return {
-      title: 'Insertion Sort Training Intro',
+      title: 'Insertion Sort Guided Practice Intro',
       subtitle: 'Quick guide before you start',
     };
   }, [mode]);
@@ -163,14 +163,14 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Review the step and try again.`
       : mode === 'training'
-        ? 'Training: Keep left side sorted. Swap only if left > right.'
+        ? 'Guided Practice: Keep left side sorted. Swap only if left > right.'
         : 'Insertion: Swap only if left > right.';
     setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -268,16 +268,16 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-8">
-          <div className="flex justify-between items-center mb-8">
+    <div className="animate-in fade-in duration-500 text-lg">
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">
+              <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
                 Time: {formatTime(timer)}
               </div>
               {mode !== 'training' && (
-                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">
+                <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
                   Mistakes: {mistakes}
                 </div>
               )}
@@ -297,8 +297,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
           </div>
 
           {isLeveledMode(mode) && (
-            <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-base font-bold uppercase tracking-wide text-slate-600">
                 Level {level} · Array Size {LEVEL_ARRAYS[level].length}
               </div>
               <div className="flex gap-2">
@@ -307,7 +307,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                     key={lvl}
                     onClick={() => handleSelectLevel(lvl)}
                     disabled={lvl > maxUnlockedLevel}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors
+                    className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors
                       ${lvl === level ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300'}
                       ${lvl > maxUnlockedLevel ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}
                     `}
@@ -319,7 +319,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             </div>
           )}
 
-          <div className="h-64 flex items-end justify-center gap-3 mb-6">
+          <div className="h-64 flex items-end justify-center gap-3 mb-4">
             {data.map((val, idx) => (
               <div
                 key={`${val}-${idx}`}
@@ -333,7 +333,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                     if (idx === jIndex - 1) e.preventDefault();
                   }}
                   onDrop={() => handleDropSwap(idx)}
-                  className={`w-12 rounded-t-xl flex items-center justify-center text-[10px] font-bold pb-2 transition-all cursor-pointer shadow-sm
+                  className={`w-14 rounded-t-xl flex items-center justify-center text-sm font-bold pb-2 transition-all cursor-pointer shadow-sm
                     ${idx < iIndex ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
                     ${idx === jIndex ? 'ring-4 ring-indigo-100 border-2 border-indigo-400 bg-white text-indigo-600' : ''}
                     ${idx === jIndex - 1 ? 'ring-2 ring-amber-200 border-2 border-amber-400' : ''}
@@ -345,23 +345,23 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                 </div>
                 {(idx === jIndex || idx === jIndex - 1) && !isComplete && (
                   <span
-                    className={`text-[10px] font-bold ${
+                    className={`text-sm font-bold ${
                       idx === jIndex ? 'text-indigo-600' : 'text-amber-600'
                     }`}
                   >
                     {idx === jIndex ? 'j' : 'j-1'}
                   </span>
                 )}
-                <span className="text-[10px] font-bold text-slate-400 uppercase">idx {idx}</span>
+                <span className="text-xs font-bold text-slate-500 uppercase">idx {idx}</span>
               </div>
             ))}
           </div>
 
           {!isComplete && (
-            <div className="mb-8 flex justify-center">
+            <div className="mb-4 flex justify-center">
               <button
                 onClick={handleContinue}
-                className="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50"
+                className="px-8 py-4 rounded-xl border border-slate-300 text-slate-800 text-xl font-bold hover:bg-slate-50"
               >
                 Continue
               </button>
@@ -369,37 +369,37 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
           )}
 
           {mode !== 'regular' && (
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8 text-center">
-              <p className={`font-semibold text-slate-700 ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4 text-center">
+              <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
           <HelpPlaceholder mode={mode} />
 
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-3">
             <button
               onClick={() => resetGame(true)}
-              className="px-6 py-2 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-600 flex items-center gap-2"
+              className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"
             >
               <RotateCcw size={18} /> Reset Level
             </button>
             {onBackToMode && (
               <button
                 onClick={onBackToMode}
-                className="px-6 py-2 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700"
+                className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg"
               >
                 Back to Modes
               </button>
             )}
-            <button onClick={onExit} className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold">Exit</button>
+            <button onClick={onExit} className="px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold text-lg">Exit</button>
           </div>
         </div>
 
-        <div className="lg:w-80 space-y-6">
-          <div className="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
-            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <div className="lg:w-96 space-y-4">
+          <div className="bg-white p-5 rounded-3xl shadow-lg border border-slate-200">
+            <h4 className="font-bold text-slate-800 mb-3 text-xl flex items-center gap-2">
               <Trophy size={18} className="text-amber-500" /> Analytics
             </h4>
-            <div className="space-y-4 text-sm">
+            <div className="space-y-3 text-lg">
               <div className="flex justify-between">
                 <span className="text-slate-500">Repeats</span>
                 <span className="font-bold text-slate-900">{repeats}</span>
@@ -416,16 +416,16 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             {(mode === 'training' || mode === 'tutorial') && (
               <button
                 onClick={() => setIntroOpen(true)}
-                className="mt-5 w-full py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50"
+                className="mt-4 w-full py-3 rounded-xl border border-slate-300 text-slate-700 text-lg font-bold hover:bg-slate-50"
               >
                 Show Intro Again
               </button>
             )}
           </div>
 
-          <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
-            <h4 className="font-bold mb-4 text-xs uppercase tracking-widest text-indigo-400">Pseudocode Trace</h4>
-            <pre className="text-[11px] text-indigo-200 leading-relaxed font-mono">
+          <div className="bg-slate-900 p-5 rounded-3xl shadow-lg text-white">
+            <h4 className="font-bold mb-3 text-sm uppercase tracking-widest text-indigo-300">Pseudocode Trace</h4>
+            <pre className="text-[16px] text-indigo-100 leading-relaxed font-mono">
               <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: for i from 1 to n-1</span>
               {'\n'}
               <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2:   j = i</span>
@@ -438,9 +438,9 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             </pre>
           </div>
 
-          <div className="bg-slate-900 rounded-3xl p-6 shadow-lg text-indigo-100 h-[300px] flex flex-col">
-            <h3 className="font-bold mb-4 text-xs uppercase tracking-widest text-slate-500">Activity Log</h3>
-            <div className="text-xs space-y-2 overflow-y-auto font-mono flex-grow">
+          <div className="bg-slate-900 rounded-3xl p-5 shadow-lg text-indigo-100 h-[300px] flex flex-col">
+            <h3 className="font-bold mb-3 text-sm uppercase tracking-widest text-slate-400">Activity Log</h3>
+            <div className="text-sm space-y-2 overflow-y-auto font-mono flex-grow">
               {activityLog.map((entry, idx) => (
                 <div key={`${entry.msg}-${idx}`} className={entry.cls}>
                   {'> '}
@@ -454,15 +454,15 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
       {modal.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6">
               <TriangleAlert size={32} />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">{mode === 'tutorial' ? 'Here\'s what went wrong' : 'Logic Violation!'}</h3>
-            <p className="text-slate-600 mb-8 leading-relaxed">{modal.msg}</p>
+            <h3 className="text-3xl font-bold text-slate-900 mb-2">{mode === 'tutorial' ? 'Here\'s what went wrong' : 'Logic Violation!'}</h3>
+            <p className="text-slate-700 text-xl mb-6 leading-relaxed">{modal.msg}</p>
             <button
               onClick={() => setModal({ open: false, msg: '' })}
-              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl text-xl font-bold hover:bg-slate-800 transition-colors"
             >
               I Understand
             </button>
@@ -472,11 +472,11 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
       {introOpen && (mode === 'training' || mode === 'tutorial') && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">{introContent.title}</h3>
-            <p className="text-slate-500 mb-6">{introContent.subtitle}</p>
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
+            <h3 className="text-3xl font-bold text-slate-900 mb-2">{introContent.title}</h3>
+            <p className="text-slate-600 text-xl mb-4">{introContent.subtitle}</p>
 
-            <div className="space-y-4 text-slate-700 leading-relaxed">
+            <div className="space-y-3 text-slate-700 text-xl leading-relaxed">
               <p>
                 Insertion sort builds a sorted section from left to right. At each step, it takes the current value and moves it left until it reaches the correct position.
               </p>
@@ -498,10 +498,10 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
               </p>
             </div>
 
-            <div className="flex justify-end mt-8">
+            <div className="flex justify-end mt-5">
               <button
                 onClick={() => setIntroOpen(false)}
-                className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-bold hover:bg-slate-800 transition-colors"
+                className="bg-slate-900 text-white px-7 py-3 rounded-2xl text-xl font-bold hover:bg-slate-800 transition-colors"
               >
                 Start Lesson
               </button>
@@ -512,3 +512,4 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     </div>
   );
 }
+

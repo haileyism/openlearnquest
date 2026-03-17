@@ -71,13 +71,13 @@ export default function RadixSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Radix sort groups by each digit place from least significant to most significant.`
       : mode === 'training'
-        ? 'Training: Put each number into bucket of its current digit.'
+        ? 'Guided Practice: Put each number into bucket of its current digit.'
         : 'Radix: Bucket by current digit, then rebuild order.';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -240,3 +240,4 @@ export default function RadixSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

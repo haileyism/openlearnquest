@@ -76,13 +76,13 @@ export default function CountingSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Follow counting sort in three steps: frequency count, prefix sums, then stable placement from right to left.`
       : mode === 'training'
-        ? 'Training: Count, prefix-sum, then place from right to left.'
+        ? 'Guided Practice: Count, prefix-sum, then place from right to left.'
         : 'Counting: Use frequency, prefix, then stable backward placement.';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -322,3 +322,4 @@ export default function CountingSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

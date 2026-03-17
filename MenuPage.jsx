@@ -99,13 +99,13 @@ export default function MenuPage({ onSelectAlgo }) {
       <div className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl">
         <div className="relative z-10">
           <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-            Regular Mode <Sparkles className="text-amber-400" size={20} />
+            Challenge Mode <Sparkles className="text-amber-400" size={20} />
           </h2>
           <p className="text-indigo-200 mb-6 max-w-md">
             Can you design an array that forces Insertion Sort to take more than 25 swaps?
           </p>
           <button className="bg-white text-indigo-900 px-6 py-2 rounded-full font-bold hover:bg-indigo-50 transition-colors shadow-lg">
-            Start Regular Mode
+            Start Challenge Mode
           </button>
         </div>
         <Bug className="absolute right-[-20px] bottom-[-20px] text-white/10 rotate-12" size={160} />

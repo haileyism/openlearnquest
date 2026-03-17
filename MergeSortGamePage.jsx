@@ -94,13 +94,13 @@ export default function MergeSortGamePage({ mode, onExit }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Merge sort recursively splits, then merges by always taking the smaller front value.`
       : mode === 'training'
-        ? 'Training: In merge step, always take the smaller front value.'
+        ? 'Guided Practice: In merge step, always take the smaller front value.'
         : 'Merge: Pick smaller front value from left/right halves.';
     setModal({ open: true, msg: modalMsg });
     if (mode === 'regular') {
       setLives((l) => {
         if (l <= 1) {
-          alert('Game Over! Try Training Mode.');
+          alert('Game Over! Try Guided Practice.');
           onExit();
           return 5;
         }
@@ -290,3 +290,4 @@ export default function MergeSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+

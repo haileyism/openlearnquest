@@ -276,14 +276,14 @@ export default function QuickSortGamePage({ mode, onExit }) {
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-8">
-          <div className="flex justify-between items-center mb-8">
+    <div className="animate-in fade-in duration-500 text-lg">
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
+          <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
-              <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Time: {formatTime(timer)}</div>
+              <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
               {mode !== 'training' && (
-                <div className="bg-slate-50 px-4 py-2 rounded-xl font-mono text-slate-600 border border-slate-100">Mistakes: {mistakes}</div>
+                <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
               )}
             </div>
             <div className="flex gap-2 text-red-500">
@@ -300,8 +300,8 @@ export default function QuickSortGamePage({ mode, onExit }) {
           </div>
 
           {isLeveledMode(mode) && (
-            <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div className="text-base font-bold uppercase tracking-wide text-slate-600">
                 Level {level} · Array Size {LEVEL_ARRAYS[level].length}
               </div>
               <div className="flex gap-2">
@@ -310,7 +310,7 @@ export default function QuickSortGamePage({ mode, onExit }) {
                     key={lvl}
                     onClick={() => handleSelectLevel(lvl)}
                     disabled={lvl > maxUnlockedLevel}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors
+                    className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors
                       ${lvl === level ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-300'}
                       ${lvl > maxUnlockedLevel ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-50'}
                     `}
@@ -356,7 +356,7 @@ export default function QuickSortGamePage({ mode, onExit }) {
                       ].filter(Boolean).join(' · ')}
                     </div>
                   )}
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">idx {idx}</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase">idx {idx}</span>
                 </div>
               );
             })}
@@ -398,31 +398,31 @@ export default function QuickSortGamePage({ mode, onExit }) {
           )}
 
           {mode !== 'regular' && (
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8 text-center">
-              <p className={`font-semibold text-slate-700 ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4 text-center">
+              <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
           <HelpPlaceholder mode={mode} />
 
-          <div className="flex justify-center gap-4">
-            <button onClick={() => resetGame(true)} className="px-6 py-2 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-600 flex items-center gap-2">
+          <div className="flex justify-center gap-3">
+            <button onClick={() => resetGame(true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
               <RotateCcw size={18} /> Reset Level
             </button>
-            <button onClick={onExit} className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold">Exit</button>
+            <button onClick={onExit} className="px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold text-lg">Exit</button>
           </div>
         </div>
 
-        <div className="lg:w-80 space-y-6">
-          <div className="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
-            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <div className="lg:w-96 space-y-4">
+          <div className="bg-white p-5 rounded-3xl shadow-lg border border-slate-200">
+            <h4 className="font-bold text-slate-800 mb-3 text-xl flex items-center gap-2">
               <Trophy size={18} className="text-amber-500" /> Analytics
             </h4>
-            <div className="space-y-4 text-sm"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
+            <div className="space-y-3 text-lg"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
           </div>
 
-          <div className="bg-slate-900 p-6 rounded-3xl shadow-lg text-white">
-            <h4 className="font-bold mb-4 text-xs uppercase tracking-widest text-indigo-400">Pseudocode Trace</h4>
-            <pre className="text-[13px] text-indigo-200 leading-relaxed font-mono">
+          <div className="bg-slate-900 p-5 rounded-3xl shadow-lg text-white">
+            <h4 className="font-bold mb-3 text-sm uppercase tracking-widest text-indigo-300">Pseudocode Trace</h4>
+            <pre className="text-[16px] text-indigo-100 leading-relaxed font-mono">
               <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: QUICKSORT(A, p, r)</span>
               {'\n'}
               <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2:   if p &lt; r</span>
@@ -441,9 +441,9 @@ export default function QuickSortGamePage({ mode, onExit }) {
             </pre>
           </div>
 
-          <div className="bg-slate-900 rounded-3xl p-6 shadow-lg text-indigo-100 h-[300px] flex flex-col">
-            <h3 className="font-bold mb-4 text-xs uppercase tracking-widest text-slate-500">Activity Log</h3>
-            <div className="text-xs space-y-2 overflow-y-auto font-mono flex-grow">
+          <div className="bg-slate-900 rounded-3xl p-5 shadow-lg text-indigo-100 h-[300px] flex flex-col">
+            <h3 className="font-bold mb-3 text-sm uppercase tracking-widest text-slate-400">Activity Log</h3>
+            <div className="text-sm space-y-2 overflow-y-auto font-mono flex-grow">
               {activityLog.map((entry, idx) => (
                 <div key={`${entry.msg}-${idx}`} className={entry.cls}>
                   {'> '}
@@ -457,13 +457,13 @@ export default function QuickSortGamePage({ mode, onExit }) {
 
       {modal.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-6">
               <TriangleAlert size={32} />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">{mode === 'tutorial' ? 'Here\'s what went wrong' : 'Logic Violation!'}</h3>
-            <p className="text-slate-600 mb-8 leading-relaxed">{modal.msg}</p>
-            <button onClick={() => setModal({ open: false, msg: '' })} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-colors">
+            <h3 className="text-3xl font-bold text-slate-900 mb-2">{mode === 'tutorial' ? 'Here\'s what went wrong' : 'Logic Violation!'}</h3>
+            <p className="text-slate-700 text-xl mb-6 leading-relaxed">{modal.msg}</p>
+            <button onClick={() => setModal({ open: false, msg: '' })} className="w-full bg-slate-900 text-white py-4 rounded-2xl text-xl font-bold hover:bg-slate-800 transition-colors">
               I Understand
             </button>
           </div>
@@ -472,6 +472,7 @@ export default function QuickSortGamePage({ mode, onExit }) {
     </div>
   );
 }
+
 
 
 

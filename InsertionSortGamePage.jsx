@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Trophy, RotateCcw, TriangleAlert, Heart } from 'lucide-react';
-import HelpPlaceholder from './HelpPlaceholder';
+import { Trophy, RotateCcw, TriangleAlert, Heart, ChevronDown, ChevronUp } from 'lucide-react';
 
 const MAX_LEVEL = 3;
 const LEVEL_ARRAYS = {
@@ -48,6 +47,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
   const [score, setScore] = useState(0);
   const [repeats, setRepeats] = useState(1);
   const [activityLog, setActivityLog] = useState([]);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [modal, setModal] = useState({ open: false, msg: '' });
   const [introOpen, setIntroOpen] = useState(mode === 'training' || mode === 'tutorial');
   const [isComplete, setIsComplete] = useState(false);
@@ -99,6 +100,10 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
       subtitle: 'Quick guide before you start',
     };
   }, [mode]);
+  const helpTitle = mode === 'tutorial' ? 'Tutorial Help' : 'Guided Practice Help';
+  const helpMessage = mode === 'tutorial'
+    ? 'Drag only j onto j-1 when a swap is needed. Use Continue when order is already correct.'
+    : 'Keep the left side sorted. Swap only when left > right, otherwise Continue.';
   const introDiagramSrc = '/insertion-sort-intro.png';
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -123,6 +128,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     setComparisons(0);
     setScore(0);
     setActivityLog([]);
+    setHelpOpen(false);
+    setActivityOpen(false);
     setModal({ open: false, msg: '' });
     setIsComplete(false);
     setActivePseudoLine(3);
@@ -269,8 +276,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
   return (
     <div className="animate-in fade-in duration-500 text-lg">
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
+      <div className="flex flex-col lg:flex-row gap-3">
+        <div className="flex-1 min-w-0 bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
               <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
@@ -319,11 +326,11 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             </div>
           )}
 
-          <div className="h-64 flex items-end justify-center gap-3 mb-4">
+          <div className="h-64 flex items-end justify-between gap-1 mb-4 w-full">
             {data.map((val, idx) => (
               <div
                 key={`${val}-${idx}`}
-                className="flex flex-col items-center gap-2"
+                className="flex-1 max-w-[84px] flex flex-col items-center gap-2"
               >
                 <div
                   draggable={!isComplete && idx === jIndex}
@@ -333,7 +340,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                     if (idx === jIndex - 1) e.preventDefault();
                   }}
                   onDrop={() => handleDropSwap(idx)}
-                  className={`w-14 rounded-t-xl flex items-center justify-center text-sm font-bold pb-2 transition-all cursor-pointer shadow-sm
+                  className={`w-full rounded-t-xl flex items-center justify-center text-sm font-bold pb-2 transition-all cursor-pointer shadow-sm
                     ${idx < iIndex ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
                     ${idx === jIndex ? 'ring-4 ring-indigo-100 border-2 border-indigo-400 bg-white text-indigo-600' : ''}
                     ${idx === jIndex - 1 ? 'ring-2 ring-amber-200 border-2 border-amber-400' : ''}
@@ -373,7 +380,6 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
               <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
-          <HelpPlaceholder mode={mode} />
 
           <div className="flex justify-center gap-3">
             <button
@@ -394,30 +400,57 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
           </div>
         </div>
 
-        <div className="lg:w-96 space-y-4">
-          <div className="bg-white p-5 rounded-3xl shadow-lg border border-slate-200">
-            <h4 className="font-bold text-slate-800 mb-3 text-xl flex items-center gap-2">
-              <Trophy size={18} className="text-amber-500" /> Analytics
-            </h4>
-            <div className="space-y-3 text-lg">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Score</span>
-                <span className="font-bold text-green-600">+{score}</span>
-              </div>
+        <div className="lg:w-80 xl:w-96 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200">
+              <Trophy size={12} className="text-amber-500" />
+              Score: +{score}
             </div>
             {(mode === 'training' || mode === 'tutorial') && (
               <button
-                onClick={() => setIntroOpen(true)}
-                className="mt-4 w-full py-3 rounded-xl border border-slate-300 text-slate-700 text-lg font-bold hover:bg-slate-50"
+                onClick={() => setHelpOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-amber-200 hover:bg-amber-200"
               >
-                Show Intro Again
+                Help
+                {helpOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
             )}
+            <button
+              onClick={() => setActivityOpen((prev) => !prev)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-indigo-200 hover:bg-indigo-200"
+            >
+              Activity
+              {activityOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
           </div>
 
-          <div className="bg-slate-900 p-5 rounded-3xl shadow-lg text-white">
+          {(mode === 'training' || mode === 'tutorial') && helpOpen && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700 mb-1">{helpTitle}</p>
+              <p className="text-sm text-amber-800 font-semibold leading-snug">{helpMessage}</p>
+            </div>
+          )}
+
+          {activityOpen && (
+            <div className="bg-slate-900 rounded-xl p-3 shadow-lg text-indigo-100">
+              <div className="text-sm space-y-2 overflow-y-auto font-mono max-h-44 pr-1">
+                {activityLog.length === 0 ? (
+                  <div className="text-slate-400">No activity yet.</div>
+                ) : (
+                  activityLog.map((entry, idx) => (
+                    <div key={`${entry.msg}-${idx}`} className={entry.cls}>
+                      {'> '}
+                      {entry.msg}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-slate-900 p-5 rounded-2xl shadow-lg text-white">
             <h4 className="font-bold mb-3 text-sm uppercase tracking-widest text-indigo-300">Pseudocode Trace</h4>
-            <pre className="text-[16px] text-indigo-100 leading-relaxed font-mono">
+            <pre className="text-base text-indigo-100 leading-relaxed font-mono">
               <span className={activePseudoLine === 1 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>1: for i from 1 to n-1</span>
               {'\n'}
               <span className={activePseudoLine === 2 ? 'bg-indigo-700 text-white px-1 rounded' : ''}>2:   j = i</span>
@@ -430,17 +463,14 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             </pre>
           </div>
 
-          <div className="bg-slate-900 rounded-3xl p-5 shadow-lg text-indigo-100 h-[300px] flex flex-col">
-            <h3 className="font-bold mb-3 text-sm uppercase tracking-widest text-slate-400">Activity Log</h3>
-            <div className="text-sm space-y-2 overflow-y-auto font-mono flex-grow">
-              {activityLog.map((entry, idx) => (
-                <div key={`${entry.msg}-${idx}`} className={entry.cls}>
-                  {'> '}
-                  {entry.msg}
-                </div>
-              ))}
-            </div>
-          </div>
+          {(mode === 'training' || mode === 'tutorial') && (
+            <button
+              onClick={() => setIntroOpen(true)}
+              className="inline-flex items-center justify-center text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200 hover:bg-slate-200"
+            >
+              Show Intro Again
+            </button>
+          )}
         </div>
       </div>
 
@@ -464,7 +494,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
       {introOpen && (mode === 'training' || mode === 'tutorial') && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
+          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-300">
             <h3 className="text-3xl font-bold text-slate-900 mb-2">{introContent.title}</h3>
             <p className="text-slate-600 text-xl mb-4">{introContent.subtitle}</p>
 

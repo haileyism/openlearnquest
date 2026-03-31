@@ -29,7 +29,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-slate-50 font-sans">
-      <div className="max-w-6xl mx-auto">
+      <div className={view === 'game' ? 'max-w-[96vw] mx-auto' : 'max-w-6xl mx-auto'}>
         {/* GLOBAL HEADER */}
         <header className="flex justify-between items-center mb-10">
           <div>

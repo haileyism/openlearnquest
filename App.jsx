@@ -34,13 +34,13 @@ export default function App() {
         <header className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-              SortLogic <span className="text-indigo-600">Elite</span>
+              OpenLearnQuest
             </h1>
             <p className="text-slate-500 font-medium">Educational Lab Prototype</p>
           </div>
           <div className="bg-white px-4 py-2 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-3">
             <Trophy className="text-amber-500" size={20} />
-            <span className="font-bold text-slate-700">Rank: Novice</span>
+            <span className="font-bold text-slate-700">Leaderboard</span>
           </div>
         </header>
 

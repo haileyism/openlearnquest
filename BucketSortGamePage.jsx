@@ -161,9 +161,11 @@ export default function BucketSortGamePage({ mode, onExit }) {
         <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
-              <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
-              {mode !== 'training' && (
-                <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
+              {mode === 'regular' && (
+                <>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
+                </>
               )}
             </div>
             <div className="flex gap-2 text-red-500">
@@ -202,9 +204,9 @@ export default function BucketSortGamePage({ mode, onExit }) {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-3 mb-6">
             {data.map((val, idx) => (
-              <div key={`${val}-${idx}`} className={`px-3 py-1 rounded-lg border text-sm font-bold ${phase === 'distribute' && idx === scanIdx ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>{val}</div>
+              <div key={`${val}-${idx}`} className={`px-4 py-3 rounded-xl border text-lg font-bold min-w-[72px] text-center ${phase === 'distribute' && idx === scanIdx ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>{val}</div>
             ))}
           </div>
 
@@ -222,9 +224,9 @@ export default function BucketSortGamePage({ mode, onExit }) {
 
           <div className="mb-8">
             <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">Output</h4>
-            <div className="flex flex-wrap gap-2 min-h-[40px]">
+            <div className="flex flex-wrap gap-3 min-h-[40px]">
               {output.map((val, idx) => (
-                <div key={`${val}-${idx}`} className="px-3 py-1 rounded-lg border bg-emerald-50 border-emerald-300 text-emerald-700 text-sm font-bold">{val}</div>
+                <div key={`${val}-${idx}`} className="px-4 py-3 rounded-xl border bg-emerald-50 border-emerald-300 text-emerald-700 text-lg font-bold min-w-[72px] text-center">{val}</div>
               ))}
             </div>
           </div>
@@ -242,10 +244,12 @@ export default function BucketSortGamePage({ mode, onExit }) {
           </div>
         </div>
 
-        <div className="lg:w-96 space-y-4">
-          <div className="bg-white p-5 rounded-3xl shadow-lg border border-slate-200">
-            <h4 className="font-bold text-slate-800 mb-3 text-xl flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Analytics</h4>
-            <div className="space-y-3 text-lg"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
+        <div className="lg:w-80 xl:w-96 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200">
+              <Trophy size={12} className="text-amber-500" />
+              Score: +{score}
+            </div>
           </div>
           <div className="bg-slate-900 p-5 rounded-3xl shadow-lg text-white">
             <h4 className="font-bold mb-3 text-sm uppercase tracking-widest text-indigo-300">Pseudocode Trace</h4>

@@ -165,9 +165,11 @@ export default function HeapSortGamePage({ mode, onExit }) {
         <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
-              <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
-              {mode !== 'training' && (
-                <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
+              {mode === 'regular' && (
+                <>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
+                </>
               )}
             </div>
             <div className="flex gap-2 text-red-500">
@@ -206,15 +208,15 @@ export default function HeapSortGamePage({ mode, onExit }) {
             </div>
           )}
 
-          <div className="h-64 flex items-end justify-center gap-3 mb-8">
+          <div className="h-64 flex items-end justify-between gap-1 mb-8 w-full">
             {data.map((val, idx) => {
               const heapSize = currentOp ? currentOp.heapSize : 0;
               const inHeap = idx < heapSize || isComplete;
               return (
-                <div key={`${val}-${idx}`} className="flex flex-col items-center gap-2">
+                <div key={`${val}-${idx}`} className="flex-1 max-w-[84px] flex flex-col items-center gap-2">
                   <button
                     onClick={() => handlePickIndex(idx)}
-                    className={`w-12 rounded-t-xl flex items-center justify-center text-[10px] font-bold pb-2 transition-all shadow-sm
+                    className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all shadow-sm
                       ${inHeap ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-600 text-white'}
                       ${selectedIdx === idx ? 'ring-4 ring-amber-200 border-2 border-amber-400' : ''}
                       ${currentOp && (idx === currentOp.i || idx === currentOp.j) ? 'border-2 border-cyan-500' : ''}
@@ -251,10 +253,12 @@ export default function HeapSortGamePage({ mode, onExit }) {
           </div>
         </div>
 
-        <div className="lg:w-96 space-y-4">
-          <div className="bg-white p-5 rounded-3xl shadow-lg border border-slate-200">
-            <h4 className="font-bold text-slate-800 mb-3 text-xl flex items-center gap-2"><Trophy size={18} className="text-amber-500" /> Analytics</h4>
-            <div className="space-y-3 text-lg"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
+        <div className="lg:w-80 xl:w-96 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200">
+              <Trophy size={12} className="text-amber-500" />
+              Score: +{score}
+            </div>
           </div>
           <div className="bg-slate-900 p-5 rounded-3xl shadow-lg text-white">
             <h4 className="font-bold mb-3 text-sm uppercase tracking-widest text-indigo-300">Pseudocode Trace</h4>

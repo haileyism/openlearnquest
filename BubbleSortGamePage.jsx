@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Trophy, RotateCcw, TriangleAlert, Heart, ArrowUpDown } from 'lucide-react';
+import { Trophy, RotateCcw, TriangleAlert, Heart, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 import HelpPlaceholder from './HelpPlaceholder';
 
 const MAX_LEVEL = 3;
@@ -49,6 +49,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
   const [score, setScore] = useState(0);
   const [repeats, setRepeats] = useState(1);
   const [activityLog, setActivityLog] = useState([]);
+  const [activityOpen, setActivityOpen] = useState(false);
   const [modal, setModal] = useState({ open: false, msg: '' });
   const [isComplete, setIsComplete] = useState(false);
   const [activePseudoLine, setActivePseudoLine] = useState(1);
@@ -99,6 +100,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
     setScore(0);
     setRepeats((r) => (isRepeat ? r + 1 : r));
     setActivityLog([]);
+    setActivityOpen(false);
     setModal({ open: false, msg: '' });
     setIsComplete(false);
     setActivePseudoLine(1);
@@ -245,9 +247,11 @@ export default function BubbleSortGamePage({ mode, onExit }) {
         <div className="flex-grow bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
-              <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
-              {mode !== 'training' && (
-                <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
+              {mode === 'regular' && (
+                <>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Time: {formatTime(timer)}</div>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">Mistakes: {mistakes}</div>
+                </>
               )}
             </div>
             <div className="flex gap-2 text-red-500">
@@ -286,16 +290,16 @@ export default function BubbleSortGamePage({ mode, onExit }) {
             </div>
           )}
 
-          <div className="h-64 flex items-end justify-center gap-3 mb-8">
+          <div className="h-64 flex items-end justify-between gap-1 mb-8 w-full">
             {data.map((val, idx) => {
               const sortedTailStart = data.length - passIndex;
               const isSortedTail = idx >= sortedTailStart || isComplete;
               const isActivePair = !isComplete && (idx === compareIndex || idx === compareIndex + 1);
               return (
-                <div key={`${val}-${idx}`} className="flex flex-col items-center gap-2">
+                <div key={`${val}-${idx}`} className="flex-1 max-w-[84px] flex flex-col items-center gap-2">
                   <div
                     onClick={() => handleSelectPair(idx)}
-                    className={`w-12 rounded-t-xl flex items-center justify-center text-[10px] font-bold pb-2 transition-all cursor-pointer shadow-sm
+                    className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all cursor-pointer shadow-sm
                       ${isSortedTail ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
                       ${isActivePair ? 'ring-4 ring-amber-100 border-2 border-amber-400' : ''}
                       ${selectedPair && isActivePair ? 'bg-white text-slate-900' : ''}
@@ -340,12 +344,19 @@ export default function BubbleSortGamePage({ mode, onExit }) {
           </div>
         </div>
 
-        <div className="lg:w-96 space-y-4">
-          <div className="bg-white p-5 rounded-3xl shadow-lg border border-slate-200">
-            <h4 className="font-bold text-slate-800 mb-3 text-xl flex items-center gap-2">
-              <Trophy size={18} className="text-amber-500" /> Analytics
-            </h4>
-            <div className="space-y-3 text-lg"><div className="flex justify-between"><span className="text-slate-500">Score</span><span className="font-bold text-green-600">+{score}</span></div></div>
+        <div className="lg:w-80 xl:w-96 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200">
+              <Trophy size={12} className="text-amber-500" />
+              Score: +{score}
+            </div>
+            <button
+              onClick={() => setActivityOpen((prev) => !prev)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-indigo-200 hover:bg-indigo-200"
+            >
+              Activity
+              {activityOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+            </button>
           </div>
 
           <div className="bg-slate-900 p-5 rounded-3xl shadow-lg text-white">
@@ -361,17 +372,22 @@ export default function BubbleSortGamePage({ mode, onExit }) {
             </pre>
           </div>
 
-          <div className="bg-slate-900 rounded-3xl p-5 shadow-lg text-indigo-100 h-[300px] flex flex-col">
-            <h3 className="font-bold mb-3 text-sm uppercase tracking-widest text-slate-400">Activity Log</h3>
-            <div className="text-sm space-y-2 overflow-y-auto font-mono flex-grow">
-              {activityLog.map((entry, idx) => (
-                <div key={`${entry.msg}-${idx}`} className={entry.cls}>
-                  {'> '}
-                  {entry.msg}
-                </div>
-              ))}
+          {activityOpen && (
+            <div className="bg-slate-900 rounded-xl p-3 shadow-lg text-indigo-100">
+              <div className="text-sm space-y-2 overflow-y-auto font-mono max-h-44 pr-1">
+                {activityLog.length === 0 ? (
+                  <div className="text-slate-400">No activity yet.</div>
+                ) : (
+                  activityLog.map((entry, idx) => (
+                    <div key={`${entry.msg}-${idx}`} className={entry.cls}>
+                      {'> '}
+                      {entry.msg}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

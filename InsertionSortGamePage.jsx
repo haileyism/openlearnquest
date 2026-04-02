@@ -280,13 +280,15 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
         <div className="flex-1 min-w-0 bg-white rounded-3xl shadow-xl border border-slate-200 p-5">
           <div className="flex justify-between items-center mb-4">
             <div className="flex gap-4">
-              <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
-                Time: {formatTime(timer)}
-              </div>
-              {mode !== 'training' && (
-                <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
-                  Mistakes: {mistakes}
-                </div>
+              {mode === 'regular' && (
+                <>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
+                    Time: {formatTime(timer)}
+                  </div>
+                  <div className="bg-slate-50 px-5 py-3 rounded-xl font-mono text-slate-700 border border-slate-100 text-xl">
+                    Mistakes: {mistakes}
+                  </div>
+                </>
               )}
             </div>
             <div className="flex gap-2 text-red-500">
@@ -340,8 +342,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                     if (idx === jIndex - 1) e.preventDefault();
                   }}
                   onDrop={() => handleDropSwap(idx)}
-                  className={`w-full rounded-t-xl flex items-center justify-center text-sm font-bold pb-2 transition-all cursor-pointer shadow-sm
-                    ${idx < iIndex ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
+                  className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all cursor-pointer shadow-sm
+                    ${idx <= iIndex ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
                     ${idx === jIndex ? 'ring-4 ring-indigo-100 border-2 border-indigo-400 bg-white text-indigo-600' : ''}
                     ${idx === jIndex - 1 ? 'ring-2 ring-amber-200 border-2 border-amber-400' : ''}
                     ${dragIndex === idx ? 'opacity-60' : ''}
@@ -401,7 +403,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
         </div>
 
         <div className="lg:w-80 xl:w-96 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200">
               <Trophy size={12} className="text-amber-500" />
               Score: +{score}
@@ -422,6 +424,14 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
               Activity
               {activityOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
+            {(mode === 'training' || mode === 'tutorial') && (
+              <button
+                onClick={() => setIntroOpen(true)}
+                className="inline-flex items-center justify-center text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200 hover:bg-slate-200"
+              >
+                Show Intro Again
+              </button>
+            )}
           </div>
 
           {(mode === 'training' || mode === 'tutorial') && helpOpen && (
@@ -463,14 +473,6 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
             </pre>
           </div>
 
-          {(mode === 'training' || mode === 'tutorial') && (
-            <button
-              onClick={() => setIntroOpen(true)}
-              className="inline-flex items-center justify-center text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter border border-slate-200 hover:bg-slate-200"
-            >
-              Show Intro Again
-            </button>
-          )}
         </div>
       </div>
 

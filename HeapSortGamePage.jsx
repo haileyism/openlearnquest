@@ -38,7 +38,7 @@ const buildHeapOps = (input) => {
   return ops;
 };
 
-export default function HeapSortGamePage({ mode, onExit }) {
+export default function HeapSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel('heap', mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
@@ -249,6 +249,14 @@ export default function HeapSortGamePage({ mode, onExit }) {
 
           <div className="flex justify-center gap-3">
             <button onClick={() => resetGame(level)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
+            {onBackToMode && (
+              <button
+                onClick={onBackToMode}
+                className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg"
+              >
+                Back to Modes
+              </button>
+            )}
             <button onClick={onExit} className="px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold text-lg">Exit</button>
           </div>
         </div>

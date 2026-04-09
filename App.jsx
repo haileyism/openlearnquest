@@ -67,48 +67,56 @@ export default function App() {
             {selectedAlgo === 'Bubble Sort' && (
               <BubbleSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Quick Sort' && (
               <QuickSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Selection Sort' && (
               <SelectionSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Merge Sort' && (
               <MergeSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Heap Sort' && (
               <HeapSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Counting Sort' && (
               <CountingSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Radix Sort' && (
               <RadixSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}
             {selectedAlgo === 'Bucket Sort' && (
               <BucketSortGamePage
                 mode={gameMode}
+                onBackToMode={() => setView('mode')}
                 onExit={() => setView('menu')}
               />
             )}

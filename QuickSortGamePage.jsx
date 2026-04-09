@@ -35,7 +35,7 @@ const saveCompletedLevel = (mode, level) => {
 };
 const getInitialRanges = (level) => [{ l: 0, r: LEVEL_ARRAYS[level].length - 1 }];
 
-export default function QuickSortGamePage({ mode, onExit }) {
+export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel(mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
@@ -412,6 +412,14 @@ export default function QuickSortGamePage({ mode, onExit }) {
             <button onClick={() => resetGame(true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
               <RotateCcw size={18} /> Reset Level
             </button>
+            {onBackToMode && (
+              <button
+                onClick={onBackToMode}
+                className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg"
+              >
+                Back to Modes
+              </button>
+            )}
             <button onClick={onExit} className="px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold text-lg">Exit</button>
           </div>
         </div>

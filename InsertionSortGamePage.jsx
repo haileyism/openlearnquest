@@ -65,6 +65,21 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     setIntroOpen(mode === 'training' || mode === 'tutorial');
   }, [mode]);
 
+  const sortedPrefixEnd = useMemo(() => {
+    // In insertion sort, the "temporarily sorted" zone is the left prefix.
+    // Find the largest prefix (up to current i) that is non-decreasing.
+    const upper = Math.min(iIndex, data.length - 1);
+    let end = 0;
+    for (let idx = 1; idx <= upper; idx += 1) {
+      if (data[idx - 1] <= data[idx]) {
+        end = idx;
+      } else {
+        break;
+      }
+    }
+    return end;
+  }, [data, iIndex]);
+
   const instruction = useMemo(() => {
     const isTutorial = mode === 'tutorial';
     const isTraining = mode === 'training';
@@ -343,7 +358,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                   }}
                   onDrop={() => handleDropSwap(idx)}
                   className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all cursor-pointer shadow-sm
-                    ${idx <= iIndex ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
+                    ${idx <= iIndex && idx <= sortedPrefixEnd ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
                     ${idx === jIndex ? 'ring-4 ring-indigo-100 border-2 border-indigo-400 bg-white text-indigo-600' : ''}
                     ${idx === jIndex - 1 ? 'ring-2 ring-amber-200 border-2 border-amber-400' : ''}
                     ${dragIndex === idx ? 'opacity-60' : ''}

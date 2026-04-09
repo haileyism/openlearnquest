@@ -12,7 +12,7 @@ const BUCKET_COUNT = 5;
 
 const bucketFor = (value) => Math.min(BUCKET_COUNT - 1, Math.floor((value / 100) * BUCKET_COUNT));
 
-export default function BucketSortGamePage({ mode, onExit }) {
+export default function BucketSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel('bucket', mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
@@ -240,6 +240,14 @@ export default function BucketSortGamePage({ mode, onExit }) {
 
           <div className="flex justify-center gap-3">
             <button onClick={() => resetGame(level)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
+            {onBackToMode && (
+              <button
+                onClick={onBackToMode}
+                className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg"
+              >
+                Back to Modes
+              </button>
+            )}
             <button onClick={onExit} className="px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold text-lg">Exit</button>
           </div>
         </div>

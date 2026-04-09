@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Trophy, RotateCcw, TriangleAlert, Heart, ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trophy, RotateCcw, TriangleAlert, Heart, ChevronDown, ChevronUp } from 'lucide-react';
 import HelpPlaceholder from './HelpPlaceholder';
 
 const MAX_LEVEL = 3;
@@ -34,13 +34,13 @@ const saveCompletedLevel = (mode, level) => {
   }
 };
 
-export default function BubbleSortGamePage({ mode, onExit }) {
+export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel(mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
   const [passIndex, setPassIndex] = useState(0);
   const [compareIndex, setCompareIndex] = useState(0);
-  const [selectedPair, setSelectedPair] = useState(false);
+  const [dragIndex, setDragIndex] = useState(null);
   const [swapMadeInPass, setSwapMadeInPass] = useState(false);
   const [mistakes, setMistakes] = useState(0);
   const [lives, setLives] = useState(5);
@@ -73,15 +73,10 @@ export default function BubbleSortGamePage({ mode, onExit }) {
       return 'Sorted! Bubble Sort complete.';
     }
     const boundary = data.length - passIndex - 1;
-    if (selectedPair) {
-      if (isTutorial) return `You’re looking at the pair at indices ${compareIndex} and ${compareIndex + 1}. In bubble sort we compare adjacent elements: if the left is greater than the right, we swap so the larger value moves right. Choose “Swap Pair” if ${data[compareIndex]} > ${data[compareIndex + 1]}, otherwise “Keep Order”.`;
-      if (isTraining) return 'Compare this pair: swap if left > right, otherwise keep order.';
-      return `Decide the pair at indices ${compareIndex} and ${compareIndex + 1}: swap or keep order.`;
-    }
-    if (isTutorial) return `Pass ${passIndex + 1}: We scan left to right, comparing adjacent pairs. The active pair is at indices ${compareIndex} and ${compareIndex + 1}. We only look at indices 0 to ${boundary} in this pass (larger indices are already sorted). Click one of the two highlighted bars to select this pair, then choose swap or keep order.`;
-    if (isTraining) return 'Compare adjacent pairs in this pass. Select the highlighted pair, then choose swap or keep order.';
-    return `Pass ${passIndex + 1}: select a bar from the active pair (${compareIndex}, ${compareIndex + 1}). Range ends at index ${boundary}.`;
-  }, [compareIndex, data, mode, passIndex, selectedPair, isComplete]);
+    if (isTutorial) return `Pass ${passIndex + 1}: compare indices ${compareIndex} and ${compareIndex + 1}. If left > right, drag index ${compareIndex + 1} onto index ${compareIndex} to swap. If order is already correct, click Continue. This pass checks indices 0 to ${boundary}.`;
+    if (isTraining) return 'Compare adjacent pair: drag right onto left to swap when left > right, otherwise click Continue.';
+    return `Pass ${passIndex + 1}: active pair (${compareIndex}, ${compareIndex + 1}). Drag to swap if needed, or Continue.`;
+  }, [compareIndex, data, mode, passIndex, isComplete]);
 
   const logAction = (msg, cls = 'text-slate-400') => {
     setActivityLog((prev) => [{ msg, cls }, ...prev].slice(0, 80));
@@ -91,7 +86,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
     setData([...LEVEL_ARRAYS[targetLevel]]);
     setPassIndex(0);
     setCompareIndex(0);
-    setSelectedPair(false);
+    setDragIndex(null);
     setSwapMadeInPass(false);
     setMistakes(0);
     setLives(5);
@@ -138,10 +133,10 @@ export default function BubbleSortGamePage({ mode, onExit }) {
   const triggerError = (msg) => {
     setMistakes((m) => m + 1);
     const modalMsg = mode === 'tutorial'
-      ? `Tutorial: ${msg} In tutorial mode you have unlimited lives—use the hints above to decide whether this pair should be swapped (left > right) or kept in order.`
+      ? `Tutorial: ${msg} In tutorial mode you have unlimited lives—drag right onto left when left > right, otherwise click Continue.`
       : mode === 'training'
-        ? 'Guided Practice: Compare adjacent pair. Swap if left > right.'
-        : 'Bubble: Swap adjacent pair only when left > right.';
+        ? 'Guided Practice: Compare adjacent pair. Drag right onto left only when left > right.'
+        : 'Bubble: Drag swap only when left > right.';
     setModal({ open: true, msg: modalMsg });
 
     if (mode === 'regular') {
@@ -156,27 +151,6 @@ export default function BubbleSortGamePage({ mode, onExit }) {
     }
   };
 
-  const handleSelectPair = (idx) => {
-    if (isComplete) return;
-    const leftIdx = compareIndex;
-    const rightIdx = compareIndex + 1;
-
-    if (idx !== leftIdx && idx !== rightIdx) {
-      const selected = data[idx];
-      const leftVal = data[leftIdx];
-      const rightVal = data[rightIdx];
-      const relation = getRelation(selected, leftVal);
-      triggerError(
-        `This step compares indices ${leftIdx} and ${rightIdx} (${leftVal}, ${rightVal}). You clicked ${selected}, which is ${relation} than ${leftVal}, but not part of the active pair.`,
-      );
-      return;
-    }
-
-    setSelectedPair(true);
-    setActivePseudoLine(3);
-    logAction(`Inspecting pair [${data[leftIdx]}, ${data[rightIdx]}]`);
-  };
-
   const finishSort = () => {
     saveCompletedLevel(mode, level);
     unlockNextLevel();
@@ -186,7 +160,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
   };
 
   const handleDecision = (shouldSwap) => {
-    if (!selectedPair || isComplete) return;
+    if (isComplete) return;
     const leftIdx = compareIndex;
     const rightIdx = compareIndex + 1;
     const leftVal = data[leftIdx];
@@ -198,7 +172,9 @@ export default function BubbleSortGamePage({ mode, onExit }) {
 
     if (shouldSwap !== needsSwap) {
       triggerError(
-        `Decision mismatch: ${leftVal} is ${relation} than ${rightVal}. Re-check whether this pair should be swapped to keep ascending order.`,
+        shouldSwap
+          ? `Swap mismatch: ${leftVal} is ${relation} than ${rightVal}. This pair should not be swapped; click Continue instead.`
+          : `Continue mismatch: ${leftVal} is ${relation} than ${rightVal}. This pair requires a drag swap (index ${rightIdx} onto index ${leftIdx}).`,
       );
       return;
     }
@@ -219,8 +195,7 @@ export default function BubbleSortGamePage({ mode, onExit }) {
 
     const passBoundary = data.length - passIndex - 1;
     const reachedEndOfPass = rightIdx >= passBoundary;
-
-    setSelectedPair(false);
+    setDragIndex(null);
 
     if (reachedEndOfPass) {
       if (!didSwap || passIndex + 1 >= data.length - 1) {
@@ -238,7 +213,56 @@ export default function BubbleSortGamePage({ mode, onExit }) {
 
     setCompareIndex((j) => j + 1);
     setSwapMadeInPass(didSwap);
-    setActivePseudoLine(2);
+    setActivePseudoLine(3);
+  };
+
+  const handleContinue = () => {
+    if (isComplete) return;
+    setActivePseudoLine(3);
+    handleDecision(false);
+  };
+
+  const handleDragStart = (idx) => {
+    if (isComplete) return;
+    const expectedSource = compareIndex + 1;
+    if (idx !== expectedSource) {
+      const sourceVal = data[idx];
+      const expectedVal = data[expectedSource];
+      const relation = getRelation(sourceVal, expectedVal);
+      triggerError(
+        `Invalid drag source: ${sourceVal} at index ${idx}. Drag the active right bar at index ${expectedSource} (value ${expectedVal}) onto index ${compareIndex}. ${sourceVal} is ${relation} than ${expectedVal}.`,
+      );
+      return;
+    }
+    setDragIndex(idx);
+    setActivePseudoLine(3);
+    logAction(`Inspecting pair [${data[compareIndex]}, ${data[compareIndex + 1]}]`);
+  };
+
+  const handleDragEnd = (idx) => {
+    if (isComplete) return;
+    if (dragIndex === idx) {
+      setDragIndex(null);
+      triggerError(`Invalid move. Drag index ${compareIndex + 1} onto index ${compareIndex} to swap, or click Continue.`);
+    }
+  };
+
+  const handleDropSwap = (targetIdx) => {
+    if (isComplete || dragIndex === null) return;
+    const sourceIdx = dragIndex;
+    setDragIndex(null);
+
+    if (!(sourceIdx === compareIndex + 1 && targetIdx === compareIndex)) {
+      const sourceVal = data[sourceIdx];
+      const expectedVal = data[compareIndex + 1];
+      const relation = getRelation(sourceVal, expectedVal);
+      triggerError(
+        `Invalid drop target. Drag index ${compareIndex + 1} (value ${expectedVal}) onto index ${compareIndex}. You dragged ${sourceVal}, which is ${relation} than the active right value.`,
+      );
+      return;
+    }
+
+    handleDecision(true);
   };
 
   return (
@@ -298,11 +322,18 @@ export default function BubbleSortGamePage({ mode, onExit }) {
               return (
                 <div key={`${val}-${idx}`} className="flex-1 max-w-[84px] flex flex-col items-center gap-2">
                   <div
-                    onClick={() => handleSelectPair(idx)}
+                    draggable={!isComplete && idx === compareIndex + 1}
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragEnd={() => handleDragEnd(idx)}
+                    onDragOver={(e) => {
+                      if (idx === compareIndex) e.preventDefault();
+                    }}
+                    onDrop={() => handleDropSwap(idx)}
                     className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all cursor-pointer shadow-sm
                       ${isSortedTail ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
                       ${isActivePair ? 'ring-4 ring-amber-100 border-2 border-amber-400' : ''}
-                      ${selectedPair && isActivePair ? 'bg-white text-slate-900' : ''}
+                      ${idx === compareIndex + 1 ? 'cursor-grab active:cursor-grabbing' : ''}
+                      ${dragIndex === idx ? 'opacity-60' : ''}
                     `}
                     style={{ height: `${val * 2}px` }}
                   >
@@ -314,19 +345,13 @@ export default function BubbleSortGamePage({ mode, onExit }) {
             })}
           </div>
 
-          {selectedPair && !isComplete && (
-            <div className="mb-8 flex justify-center gap-4">
+          {!isComplete && (
+            <div className="mb-8 flex justify-center">
               <button
-                onClick={() => handleDecision(true)}
-                className="px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 flex items-center gap-2"
+                onClick={handleContinue}
+                className="px-8 py-4 rounded-xl border border-slate-300 text-slate-800 text-xl font-bold hover:bg-slate-50"
               >
-                <ArrowUpDown size={16} /> Swap Pair
-              </button>
-              <button
-                onClick={() => handleDecision(false)}
-                className="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50"
-              >
-                Keep Order
+                Continue
               </button>
             </div>
           )}
@@ -340,6 +365,14 @@ export default function BubbleSortGamePage({ mode, onExit }) {
             <button onClick={() => resetGame(true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
               <RotateCcw size={18} /> Reset Level
             </button>
+            {onBackToMode && (
+              <button
+                onClick={onBackToMode}
+                className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg"
+              >
+                Back to Modes
+              </button>
+            )}
             <button onClick={onExit} className="px-6 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 font-bold text-lg">Exit</button>
           </div>
         </div>

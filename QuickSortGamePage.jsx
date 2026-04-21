@@ -8,6 +8,11 @@ const LEVEL_ARRAYS = {
   2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
   3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
 };
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 100;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 const isLeveledMode = (mode) => mode === 'training' || mode === 'regular';
 const getProgressKey = (mode) => `sortlogic.quick.${mode}.maxLevel`;
@@ -43,8 +48,10 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
   const [partitionState, setPartitionState] = useState({
     i: -1,
     j: 0,
-    phase: 'compare', // compare | pivotSwap
+    phase: 'compare', // compare | partitionSwap | pivotSwap
   });
+  const [dragIndex, setDragIndex] = useState(null);
+  const [fixedPivots, setFixedPivots] = useState([]);
   const [mistakes, setMistakes] = useState(0);
   const [lives, setLives] = useState(5);
   const [timer, setTimer] = useState(0);
@@ -99,23 +106,31 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
     }
     const { i, j, phase } = partitionState;
     if (phase === 'pivotSwap') {
-      if (isTutorial) return `Partition scan is complete. All elements <= pivot (${pivotValue}) are to the left of index i+1. Now place the pivot in final position by swapping it from index ${currentRange.r} to index ${i + 1}.`;
-      if (isTraining) return 'Place the pivot in its final position.';
-      return `Partition scan finished. Now swap pivot ${pivotValue} at index ${currentRange.r} with index ${i + 1}.`;
+      if (isTutorial) return `Partition scan is complete. Drag pivot ${pivotValue} from index ${currentRange.r} to index i+1 (${i + 1}) to lock the pivot in final position.`;
+      if (isTraining) return `Drag pivot index ${currentRange.r} to index ${i + 1} to finish this partition.`;
+      return `Finalize partition by swapping pivot index ${currentRange.r} with index ${i + 1}.`;
     }
-    if (isTutorial) return `We’re partitioning [${currentRange.l}..${currentRange.r}] with pivot ${pivotValue}. For each arr[j] = ${data[j]}, check arr[j] <= pivot. If true, increment i and swap arr[i] with arr[j].`;
-    if (isTraining) return 'For each element, decide if it is <= pivot.';
-    return `Range [${currentRange.l}..${currentRange.r}], pivot ${pivotValue}. Decide whether arr[${j}] (${data[j]}) is <= pivot.`;
+    if (phase === 'partitionSwap') {
+      if (isTutorial) return `You selected True for A[j] <= pivot, so now perform the swap yourself: drag index j (${j}) onto index i (${i}).`;
+      if (isTraining) return `Manual step: drag j (${j}) and i (${i}) to complete the swap.`;
+      return `Swap required: exchange indices i=${i} and j=${j}.`;
+    }
+    if (isTutorial) return `We’re partitioning [${currentRange.l}..${currentRange.r}] around pivot ${pivotValue}. Decide if arr[j=${j}] = ${data[j]} is <= pivot. If true, i moves right and you manually swap arr[i] with arr[j].`;
+    if (isTraining) return `Decision step: compare arr[j=${j}] = ${data[j]} with pivot ${pivotValue}.`;
+    return `Compare arr[${j}] (${data[j]}) with pivot ${pivotValue}.`;
   }, [currentRange, data, isComplete, mode, partitionState, pivotValue]);
 
   const logAction = (msg, cls = 'text-slate-400') => {
     setActivityLog((prev) => [{ msg, cls }, ...prev].slice(0, 80));
   };
 
-  const resetGame = (isRepeat = false, targetLevel = level) => {
-    setData([...LEVEL_ARRAYS[targetLevel]]);
+  const resetGame = (isRepeat = false, targetLevel = level, randomizeValues = false) => {
+    const nextData = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
+    setData(nextData);
     setRanges(getInitialRanges(targetLevel));
     setPartitionState({ i: -1, j: 0, phase: 'compare' });
+    setDragIndex(null);
+    setFixedPivots([]);
     setMistakes(0);
     setLives(5);
     setTimer(0);
@@ -164,7 +179,7 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} Use partition rule: if A[j] <= pivot, increment i and swap A[i] with A[j].`
       : mode === 'training'
-        ? 'Guided Practice: Compare to pivot. Move left when value <= pivot.'
+        ? `Guided Practice: ${msg} Compare to pivot, then manually perform required swaps.`
         : 'Quick: Move left when value <= pivot.';
     setModal({ open: true, msg: modalMsg });
 
@@ -194,6 +209,7 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
 
     setRanges(nextRanges);
     setPartitions((p) => p + 1);
+    setFixedPivots((prev) => [...prev, pivotFinalIndex]);
     setScore((s) => s + 10);
     setActivePseudoLine(8);
     logAction(`Pivot ${data[pivotFinalIndex]} placed at index ${pivotFinalIndex}`, 'text-green-500');
@@ -240,36 +256,102 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
       return;
     }
 
-    let nextData = [...data];
     let nextI = i;
 
     if (isActuallyLe) {
       nextI = i + 1;
-      [nextData[nextI], nextData[j]] = [nextData[j], nextData[nextI]];
-      setData(nextData);
-      setScore((s) => s + 5);
+      if (nextI === j) {
+        setScore((s) => s + 5);
+        logAction(`A[j]=${currentVal} <= pivot, i and j are same index (${j})`, 'text-cyan-400');
+        const nextJ = j + 1;
+        if (nextJ >= r) {
+          setPartitionState({ i: nextI, j: nextJ, phase: 'pivotSwap' });
+          setActivePseudoLine(8);
+          return;
+        }
+        setPartitionState({ i: nextI, j: nextJ, phase: 'compare' });
+        setActivePseudoLine(4);
+        return;
+      }
+      setPartitionState({ i: nextI, j, phase: 'partitionSwap' });
       setActivePseudoLine(7);
-      logAction(`A[j]=${currentVal} <= pivot, swapped with A[i]`, 'text-cyan-400');
-    } else {
-      logAction(`A[j]=${currentVal} > pivot, kept on right side`, 'text-slate-400');
+      logAction(`True: now swap i=${nextI} with j=${j}`, 'text-cyan-400');
+      return;
     }
 
+    logAction(`A[j]=${currentVal} > pivot, kept on right side`, 'text-slate-400');
     const nextJ = j + 1;
     if (nextJ >= r) {
       setPartitionState({ i: nextI, j: nextJ, phase: 'pivotSwap' });
       setActivePseudoLine(8);
       return;
     }
-
     setPartitionState({ i: nextI, j: nextJ, phase: 'compare' });
     setActivePseudoLine(4);
   };
 
-  const handlePivotSwap = () => {
-    if (isComplete || !currentRange || partitionState.phase !== 'pivotSwap') return;
+  const handleDragStart = (idx) => {
+    if (isComplete || !currentRange) return;
+    if (partitionState.phase === 'partitionSwap') {
+      if (idx !== partitionState.i && idx !== partitionState.j) {
+        triggerError(`Swap only i (${partitionState.i}) and j (${partitionState.j}) for this step.`);
+        return;
+      }
+      setDragIndex(idx);
+      return;
+    }
+    if (partitionState.phase === 'pivotSwap') {
+      const swapTarget = partitionState.i + 1;
+      if (idx !== pivotIndex && idx !== swapTarget) {
+        triggerError(`Pivot placement allows only indices ${pivotIndex} and ${swapTarget}.`);
+        return;
+      }
+      setDragIndex(idx);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (dragIndex !== null) setDragIndex(null);
+  };
+
+  const handleManualSwapDrop = (targetIdx) => {
+    if (isComplete || !currentRange || dragIndex === null) return;
+    const sourceIdx = dragIndex;
+    setDragIndex(null);
+
+    if (partitionState.phase === 'partitionSwap') {
+      const valid = (sourceIdx === partitionState.i && targetIdx === partitionState.j)
+        || (sourceIdx === partitionState.j && targetIdx === partitionState.i);
+      if (!valid) {
+        triggerError(`Swap only indices i=${partitionState.i} and j=${partitionState.j}.`);
+        return;
+      }
+      const nextData = [...data];
+      [nextData[partitionState.i], nextData[partitionState.j]] = [nextData[partitionState.j], nextData[partitionState.i]];
+      setData(nextData);
+      setScore((s) => s + 5);
+      logAction(`Swapped arr[i=${partitionState.i}] and arr[j=${partitionState.j}]`, 'text-cyan-400');
+
+      const nextJ = partitionState.j + 1;
+      if (nextJ >= currentRange.r) {
+        setPartitionState((prev) => ({ ...prev, j: nextJ, phase: 'pivotSwap' }));
+        setActivePseudoLine(8);
+        return;
+      }
+      setPartitionState((prev) => ({ ...prev, j: nextJ, phase: 'compare' }));
+      setActivePseudoLine(4);
+      return;
+    }
+
+    if (partitionState.phase !== 'pivotSwap') return;
 
     const { r } = currentRange;
     const pivotTarget = partitionState.i + 1;
+    const valid = (sourceIdx === r && targetIdx === pivotTarget) || (sourceIdx === pivotTarget && targetIdx === r);
+    if (!valid) {
+      triggerError(`Swap only pivot index ${r} with index ${pivotTarget}.`);
+      return;
+    }
     const nextData = [...data];
     [nextData[pivotTarget], nextData[r]] = [nextData[r], nextData[pivotTarget]];
     setData(nextData);
@@ -333,17 +415,32 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
               const isJ = currentRange && partitionState.phase === 'compare' && idx === partitionState.j && partitionState.j < currentRange.r;
               const isI = idx === partitionState.i;
               const isIP1 = idx === partitionState.i + 1 && currentRange;
+              const isFixedPivot = fixedPivots.includes(idx);
+              const isLeftPartition = inCurrentRange && idx >= currentRange.l && idx <= partitionState.i && idx !== pivotIndex;
+              const isRightPartition = inCurrentRange && idx > partitionState.i && idx < pivotIndex;
+              const isManualSwapTarget = partitionState.phase === 'partitionSwap' && (idx === partitionState.i || idx === partitionState.j);
+              const isPivotSwapTarget = partitionState.phase === 'pivotSwap' && (idx === pivotIndex || idx === partitionState.i + 1);
 
               return (
                 <div key={`${val}-${idx}`} className="flex-1 max-w-[84px] flex flex-col items-center gap-2">
                   <div
+                    draggable={!isComplete && (isManualSwapTarget || isPivotSwapTarget)}
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => {
+                      if (!isComplete && dragIndex !== null && (isManualSwapTarget || isPivotSwapTarget)) e.preventDefault();
+                    }}
+                    onDrop={() => handleManualSwapDrop(idx)}
                     className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all shadow-sm
-                      ${!inAnyRange || isComplete ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}
+                      ${isFixedPivot || !inAnyRange || isComplete ? 'bg-indigo-600 text-white' : isLeftPartition ? 'bg-emerald-100 text-emerald-800' : isRightPartition ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}
                       ${inCurrentRange ? 'ring-2 ring-indigo-200' : ''}
                       ${idx === pivotIndex ? 'bg-purple-600 text-white ring-4 ring-purple-200' : ''}
                       ${isJ ? 'ring-4 ring-amber-200 border-2 border-amber-400' : ''}
                       ${isI ? 'border-2 border-cyan-500' : ''}
                       ${isIP1 ? 'border-2 border-emerald-500' : ''}
+                      ${isFixedPivot ? 'border-2 border-purple-300' : ''}
+                      ${(isManualSwapTarget || isPivotSwapTarget) ? 'cursor-grab active:cursor-grabbing' : ''}
+                      ${dragIndex === idx ? 'opacity-60' : ''}
                     `}
                     style={{ height: `${val * 2}px` }}
                   >
@@ -357,6 +454,7 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
                         idx === partitionState.i ? 'i' : '',
                         currentRange && idx === partitionState.i + 1 ? 'i+1' : '',
                         idx === pivotIndex ? 'pivot,r' : '',
+                        fixedPivots.includes(idx) ? 'pivot-fixed' : '',
                       ].filter(Boolean).join(' · ')}
                     </div>
                   )}
@@ -383,20 +481,28 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
                     A[j] &gt; pivot (False)
                   </button>
                 </div>
+              ) : partitionState.phase === 'partitionSwap' ? (
+                <div className="flex justify-center">
+                  <div className="px-5 py-3 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-800 font-bold">
+                    Drag i and j to perform the swap
+                  </div>
+                </div>
               ) : (
                 <div className="flex justify-center">
-                  <button
-                    onClick={handlePivotSwap}
-                    className="px-5 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700"
-                  >
-                    Swap Pivot with arr[i + 1]
-                  </button>
+                  <div className="px-5 py-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-800 font-bold">
+                    Drag pivot and i+1 to finalize this partition
+                  </div>
                 </div>
               )}
               <div className="text-center text-xs text-slate-500 mt-3">
                 {partitionState.phase === 'compare'
                   ? `Pointer state: i = ${partitionState.i}, j = ${partitionState.j}, pivot index = ${pivotIndex}`
-                  : `Finalize partition: place pivot from index ${pivotIndex} to index ${partitionState.i + 1}`}
+                  : partitionState.phase === 'partitionSwap'
+                    ? `Manual swap: exchange i=${partitionState.i} with j=${partitionState.j}`
+                    : `Finalize partition: place pivot from index ${pivotIndex} to index ${partitionState.i + 1}`}
+              </div>
+              <div className="text-center text-xs text-slate-500 mt-1">
+                Green = current left subarray (&lt;= pivot zone), amber = current right subarray (&gt; pivot candidates), purple tags = finalized pivots.
               </div>
             </div>
           )}
@@ -406,10 +512,10 @@ export default function QuickSortGamePage({ mode, onExit, onBackToMode }) {
               <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
-          <HelpPlaceholder mode={mode} />
+          <HelpPlaceholder mode={mode} algorithm="quick" />
 
           <div className="flex justify-center gap-3">
-            <button onClick={() => resetGame(true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
+            <button onClick={() => resetGame(true, level, true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
               <RotateCcw size={18} /> Reset Level
             </button>
             {onBackToMode && (

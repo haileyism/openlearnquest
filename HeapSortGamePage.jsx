@@ -8,6 +8,11 @@ const LEVEL_ARRAYS = {
   2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
   3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
 };
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 100;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 const buildHeapOps = (input) => {
   const arr = [...input];
@@ -62,8 +67,8 @@ export default function HeapSortGamePage({ mode, onExit, onBackToMode }) {
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   const currentOp = ops[opIdx];
 
-  const resetGame = (targetLevel = level) => {
-    const arr = [...LEVEL_ARRAYS[targetLevel]];
+  const resetGame = (targetLevel = level, randomizeValues = false) => {
+    const arr = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
     setData(arr);
     setOps(buildHeapOps(arr));
     setOpIdx(0);
@@ -245,10 +250,10 @@ export default function HeapSortGamePage({ mode, onExit, onBackToMode }) {
               <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
-          <HelpPlaceholder mode={mode} />
+          <HelpPlaceholder mode={mode} algorithm="heap" />
 
           <div className="flex justify-center gap-3">
-            <button onClick={() => resetGame(level)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
+            <button onClick={() => resetGame(level, true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
             {onBackToMode && (
               <button
                 onClick={onBackToMode}

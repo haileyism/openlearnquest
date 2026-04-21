@@ -8,6 +8,11 @@ const LEVEL_ARRAYS = {
   2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
   3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
 };
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 100;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 const isLeveledMode = (mode) => mode === 'training' || mode === 'regular';
 const getProgressKey = (mode) => `sortlogic.bubble.${mode}.maxLevel`;
@@ -82,8 +87,9 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
     setActivityLog((prev) => [{ msg, cls }, ...prev].slice(0, 80));
   };
 
-  const resetGame = (isRepeat = false, targetLevel = level) => {
-    setData([...LEVEL_ARRAYS[targetLevel]]);
+  const resetGame = (isRepeat = false, targetLevel = level, randomizeValues = false) => {
+    const nextData = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
+    setData(nextData);
     setPassIndex(0);
     setCompareIndex(0);
     setDragIndex(null);
@@ -135,7 +141,7 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
     const modalMsg = mode === 'tutorial'
       ? `Tutorial: ${msg} In tutorial mode you have unlimited lives—drag right onto left when left > right, otherwise click Continue.`
       : mode === 'training'
-        ? 'Guided Practice: Compare adjacent pair. Drag right onto left only when left > right.'
+        ? `Guided Practice: ${msg} Move larger elements to the right through adjacent swaps until each pass is in order.`
         : 'Bubble: Drag swap only when left > right.';
     setModal({ open: true, msg: modalMsg });
 
@@ -226,12 +232,7 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
     if (isComplete) return;
     const expectedSource = compareIndex + 1;
     if (idx !== expectedSource) {
-      const sourceVal = data[idx];
-      const expectedVal = data[expectedSource];
-      const relation = getRelation(sourceVal, expectedVal);
-      triggerError(
-        `Invalid drag source: ${sourceVal} at index ${idx}. Drag the active right bar at index ${expectedSource} (value ${expectedVal}) onto index ${compareIndex}. ${sourceVal} is ${relation} than ${expectedVal}.`,
-      );
+      triggerError(`You can only swap the highlighted pair: j (index ${compareIndex}) and j+1 (index ${expectedSource}).`);
       return;
     }
     setDragIndex(idx);
@@ -243,7 +244,7 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
     if (isComplete) return;
     if (dragIndex === idx) {
       setDragIndex(null);
-      triggerError(`Invalid move. Drag index ${compareIndex + 1} onto index ${compareIndex} to swap, or click Continue.`);
+      triggerError(`Invalid move. You can only swap j and j+1 (indices ${compareIndex} and ${compareIndex + 1}).`);
     }
   };
 
@@ -253,12 +254,7 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
     setDragIndex(null);
 
     if (!(sourceIdx === compareIndex + 1 && targetIdx === compareIndex)) {
-      const sourceVal = data[sourceIdx];
-      const expectedVal = data[compareIndex + 1];
-      const relation = getRelation(sourceVal, expectedVal);
-      triggerError(
-        `Invalid drop target. Drag index ${compareIndex + 1} (value ${expectedVal}) onto index ${compareIndex}. You dragged ${sourceVal}, which is ${relation} than the active right value.`,
-      );
+      triggerError(`Invalid swap. You can only swap j and j+1 (indices ${compareIndex} and ${compareIndex + 1}).`);
       return;
     }
 
@@ -279,9 +275,9 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
               )}
             </div>
             <div className="flex gap-2 text-red-500">
-              {mode === 'tutorial' ? (
+              {mode === 'tutorial' || mode === 'training' ? (
                 <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-tighter">
-                  Tutorial • Unlimited Lives
+                  {mode === 'tutorial' ? 'Tutorial' : 'Guided Practice'} • Unlimited Lives
                 </span>
               ) : (
                 Array.from({ length: 5 }).map((_, i) => (
@@ -339,6 +335,11 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
                   >
                     {val}
                   </div>
+                  {!isComplete && (idx === compareIndex || idx === compareIndex + 1) && (
+                    <span className={`text-xs font-bold uppercase ${idx === compareIndex ? 'text-amber-600' : 'text-indigo-600'}`}>
+                      {idx === compareIndex ? 'j' : 'j+1'}
+                    </span>
+                  )}
                   <span className="text-xs font-bold text-slate-500 uppercase">idx {idx}</span>
                 </div>
               );
@@ -359,10 +360,10 @@ export default function BubbleSortGamePage({ mode, onExit, onBackToMode }) {
           <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4 text-center">
             <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
           </div>
-          <HelpPlaceholder mode={mode} />
+          <HelpPlaceholder mode={mode} algorithm="bubble" />
 
           <div className="flex justify-center gap-3">
-            <button onClick={() => resetGame(true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
+            <button onClick={() => resetGame(true, level, true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2">
               <RotateCcw size={18} /> Reset Level
             </button>
             {onBackToMode && (

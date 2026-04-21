@@ -9,6 +9,11 @@ const LEVEL_ARRAYS = {
   3: [17, 72, 39, 84, 6, 58, 91, 43, 27, 65, 10],
 };
 const BUCKET_COUNT = 5;
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 99;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 const bucketFor = (value) => Math.min(BUCKET_COUNT - 1, Math.floor((value / 100) * BUCKET_COUNT));
 
@@ -38,8 +43,9 @@ export default function BucketSortGamePage({ mode, onExit, onBackToMode }) {
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
-  const resetGame = (targetLevel = level) => {
-    setData([...LEVEL_ARRAYS[targetLevel]]);
+  const resetGame = (targetLevel = level, randomizeValues = false) => {
+    const nextData = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
+    setData(nextData);
     setPhase('distribute');
     setScanIdx(0);
     setBuckets(Array.from({ length: BUCKET_COUNT }, () => []));
@@ -236,10 +242,10 @@ export default function BucketSortGamePage({ mode, onExit, onBackToMode }) {
               <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
-          <HelpPlaceholder mode={mode} />
+          <HelpPlaceholder mode={mode} algorithm="bucket" />
 
           <div className="flex justify-center gap-3">
-            <button onClick={() => resetGame(level)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
+            <button onClick={() => resetGame(level, true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
             {onBackToMode && (
               <button
                 onClick={onBackToMode}

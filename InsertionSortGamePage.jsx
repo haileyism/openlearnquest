@@ -7,6 +7,11 @@ const LEVEL_ARRAYS = {
   2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
   3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
 };
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 100;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 const isLeveledMode = (mode) => mode === 'training' || mode === 'regular';
 const getProgressKey = (mode) => `sortlogic.insertion.${mode}.maxLevel`;
@@ -51,6 +56,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
   const [activityOpen, setActivityOpen] = useState(false);
   const [modal, setModal] = useState({ open: false, msg: '' });
   const [introOpen, setIntroOpen] = useState(mode === 'training' || mode === 'tutorial');
+  const [confirmedSortedEnd, setConfirmedSortedEnd] = useState(0);
+  const [awaitingFinalConfirm, setAwaitingFinalConfirm] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [activePseudoLine, setActivePseudoLine] = useState(3);
 
@@ -65,21 +72,6 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     setIntroOpen(mode === 'training' || mode === 'tutorial');
   }, [mode]);
 
-  const sortedPrefixEnd = useMemo(() => {
-    // In insertion sort, the "temporarily sorted" zone is the left prefix.
-    // Find the largest prefix (up to current i) that is non-decreasing.
-    const upper = Math.min(iIndex, data.length - 1);
-    let end = 0;
-    for (let idx = 1; idx <= upper; idx += 1) {
-      if (data[idx - 1] <= data[idx]) {
-        end = idx;
-      } else {
-        break;
-      }
-    }
-    return end;
-  }, [data, iIndex]);
-
   const instruction = useMemo(() => {
     const isTutorial = mode === 'tutorial';
     const isTraining = mode === 'training';
@@ -87,6 +79,11 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
       if (isTutorial) return 'Sorted! You’ve finished this run. In insertion sort, the array is sorted when every element has been placed in order. Well done!';
       if (isTraining) return 'Sorted! Well done.';
       return 'Sorted! Mastery achieved.';
+    }
+    if (awaitingFinalConfirm) {
+      if (isTutorial) return 'All insertion steps are complete. Click Sorted to confirm the finished array and mark all bars as sorted.';
+      if (isTraining) return 'Final check: click Sorted to complete.';
+      return 'Click Sorted to finish this run.';
     }
     if (jIndex <= 0) {
       if (isTutorial) return `Inner loop done for this element. When j reaches 0 or the element is in the right place, we stop moving it left. Click Continue to advance the outer loop to the next index i = ${iIndex + 1}.`;
@@ -101,7 +98,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     if (isTutorial) return `The value at index ${jIndex} (${data[jIndex]}) is already greater than or equal to the one at ${jIndex - 1} (${data[jIndex - 1]}), so no swap is needed. Click Continue to move the inner loop forward.`;
     if (isTraining) return 'Order is correct here. Continue.';
     return `No swap needed at indices ${jIndex - 1} and ${jIndex}. Click Continue.`;
-  }, [data, iIndex, isComplete, jIndex, mode]);
+  }, [awaitingFinalConfirm, data, iIndex, isComplete, jIndex, mode]);
 
   const introContent = useMemo(() => {
     if (mode === 'tutorial') {
@@ -132,8 +129,9 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     setActivityLog((prev) => [{ msg, cls }, ...prev].slice(0, 80));
   };
 
-  const resetGame = (isRepeat = false, targetLevel = level) => {
-    setData([...LEVEL_ARRAYS[targetLevel]]);
+  const resetGame = (isRepeat = false, targetLevel = level, randomizeValues = false) => {
+    const nextData = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
+    setData(nextData);
     setIIndex(1);
     setJIndex(1);
     setDragIndex(null);
@@ -146,6 +144,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
     setHelpOpen(false);
     setActivityOpen(false);
     setModal({ open: false, msg: '' });
+    setConfirmedSortedEnd(0);
+    setAwaitingFinalConfirm(false);
     setIsComplete(false);
     setActivePseudoLine(3);
     if (isRepeat) setRepeats((r) => r + 1);
@@ -203,14 +203,23 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
   const needsSwap = !isComplete && jIndex > 0 && data[jIndex - 1] > data[jIndex];
 
+  const finalizeCompletion = () => {
+    saveCompletedLevel(mode, level);
+    unlockNextLevel();
+    setConfirmedSortedEnd(data.length - 1);
+    setAwaitingFinalConfirm(false);
+    setIsComplete(true);
+    setActivePseudoLine(1);
+    logAction('SORT COMPLETE', 'text-amber-500 font-bold');
+  };
+
   const moveToNextI = () => {
+    setConfirmedSortedEnd((prev) => Math.max(prev, iIndex));
     const nextI = iIndex + 1;
     if (nextI >= data.length) {
-      saveCompletedLevel(mode, level);
-      unlockNextLevel();
-      setIsComplete(true);
+      setAwaitingFinalConfirm(true);
       setActivePseudoLine(1);
-      logAction('SORT COMPLETE', 'text-amber-500 font-bold');
+      logAction('All elements placed. Click Sorted to finish.', 'text-cyan-400');
       return;
     }
 
@@ -223,6 +232,10 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
   const handleContinue = () => {
     if (isComplete) return;
+    if (awaitingFinalConfirm) {
+      finalizeCompletion();
+      return;
+    }
     if (jIndex > 0) setComparisons((c) => c + 1);
 
     if (needsSwap) {
@@ -237,12 +250,12 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
   };
 
   const handleDragStart = (idx) => {
-    if (isComplete) return;
+    if (isComplete || awaitingFinalConfirm) return;
     setDragIndex(idx);
   };
 
   const handleDragEnd = (idx) => {
-    if (isComplete) return;
+    if (isComplete || awaitingFinalConfirm) return;
     // If drag ended without a valid onDrop action, treat it as an invalid move.
     if (dragIndex === idx) {
       setDragIndex(null);
@@ -251,7 +264,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
   };
 
   const handleDropSwap = (targetIdx) => {
-    if (isComplete || dragIndex === null) return;
+    if (isComplete || awaitingFinalConfirm || dragIndex === null) return;
     const sourceIdx = dragIndex;
     setDragIndex(null);
 
@@ -345,12 +358,23 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
           <div className="h-64 flex items-end justify-between gap-1 mb-4 w-full">
             {data.map((val, idx) => (
+              (() => {
+                const isActiveJ = idx === jIndex && !isComplete && !awaitingFinalConfirm;
+                const isCompareTarget = idx === jIndex - 1 && !isComplete && !awaitingFinalConfirm;
+                const isLockedSorted = idx <= confirmedSortedEnd && !isActiveJ;
+                const baseToneClass = isActiveJ
+                  ? 'bg-white text-indigo-600 shadow-sm'
+                  : isLockedSorted
+                    ? 'bg-indigo-600 text-white shadow-indigo-100'
+                    : 'bg-slate-100 text-slate-400';
+
+                return (
               <div
                 key={`${val}-${idx}`}
                 className="flex-1 max-w-[84px] flex flex-col items-center gap-2"
               >
                 <div
-                  draggable={!isComplete && idx === jIndex}
+                  draggable={!isComplete && !awaitingFinalConfirm && idx === jIndex}
                   onDragStart={() => handleDragStart(idx)}
                   onDragEnd={() => handleDragEnd(idx)}
                   onDragOver={(e) => {
@@ -358,16 +382,16 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                   }}
                   onDrop={() => handleDropSwap(idx)}
                   className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all cursor-pointer shadow-sm
-                    ${idx <= iIndex && idx <= sortedPrefixEnd ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'}
-                    ${idx === jIndex ? 'ring-4 ring-indigo-100 border-2 border-indigo-400 bg-white text-indigo-600' : ''}
-                    ${idx === jIndex - 1 ? 'ring-2 ring-amber-200 border-2 border-amber-400' : ''}
+                    ${baseToneClass}
+                    ${isActiveJ ? 'ring-4 ring-indigo-100 border-2 border-indigo-400' : ''}
+                    ${isCompareTarget ? 'ring-2 ring-amber-200 border-2 border-amber-400' : ''}
                     ${dragIndex === idx ? 'opacity-60' : ''}
                   `}
                   style={{ height: `${val * 2}px` }}
                 >
                   {val}
                 </div>
-                {(idx === jIndex || idx === jIndex - 1) && !isComplete && (
+                {(idx === jIndex || idx === jIndex - 1) && !isComplete && !awaitingFinalConfirm && (
                   <span
                     className={`text-sm font-bold ${
                       idx === jIndex ? 'text-indigo-600' : 'text-amber-600'
@@ -378,6 +402,8 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                 )}
                 <span className="text-xs font-bold text-slate-500 uppercase">idx {idx}</span>
               </div>
+                );
+              })()
             ))}
           </div>
 
@@ -387,7 +413,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                 onClick={handleContinue}
                 className="px-8 py-4 rounded-xl border border-slate-300 text-slate-800 text-xl font-bold hover:bg-slate-50"
               >
-                Continue
+                {awaitingFinalConfirm ? 'Sorted' : 'Continue'}
               </button>
             </div>
           )}
@@ -400,7 +426,7 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
 
           <div className="flex justify-center gap-3">
             <button
-              onClick={() => resetGame(true)}
+              onClick={() => resetGame(true, level, true)}
               className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"
             >
               <RotateCcw size={18} /> Reset Level
@@ -447,6 +473,11 @@ export default function InsertionSortGamePage({ mode, onExit, onBackToMode }) {
                 Show Intro Again
               </button>
             )}
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Time Complexity</p>
+            <p className="text-sm text-slate-700 font-semibold">Insertion Sort: Best O(n) | Average/Worst O(n^2)</p>
           </div>
 
           {(mode === 'training' || mode === 'tutorial') && helpOpen && (

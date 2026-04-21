@@ -8,6 +8,11 @@ const LEVEL_ARRAYS = {
   2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
   3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
 };
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 100;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 const buildMergeTasks = (l, r, acc = []) => {
   if (l >= r) return acc;
@@ -17,12 +22,26 @@ const buildMergeTasks = (l, r, acc = []) => {
   acc.push({ l, m, r });
   return acc;
 };
+const buildSplitSteps = (l, r, acc = []) => {
+  if (l >= r) return acc;
+  const m = Math.floor((l + r) / 2);
+  acc.push({ l, m, r, leftL: l, leftR: m, rightL: m + 1, rightR: r });
+  buildSplitSteps(l, m, acc);
+  buildSplitSteps(m + 1, r, acc);
+  return acc;
+};
 
 export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
   const [maxUnlockedLevel, setMaxUnlockedLevel] = useState(getUnlockedLevel('merge', mode));
   const [data, setData] = useState([...LEVEL_ARRAYS[1]]);
   const [tasks, setTasks] = useState(buildMergeTasks(0, LEVEL_ARRAYS[1].length - 1));
+  const [splitSteps, setSplitSteps] = useState(buildSplitSteps(0, LEVEL_ARRAYS[1].length - 1));
+  const [splitIdx, setSplitIdx] = useState(0);
+  const [phase, setPhase] = useState('split');
+  const [splitLeftSlots, setSplitLeftSlots] = useState([]);
+  const [splitRightSlots, setSplitRightSlots] = useState([]);
+  const [splitDragIndex, setSplitDragIndex] = useState(null);
   const [taskIdx, setTaskIdx] = useState(0);
   const [leftArr, setLeftArr] = useState([]);
   const [rightArr, setRightArr] = useState([]);
@@ -45,6 +64,22 @@ export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   const currentTask = tasks[taskIdx];
+  const currentSplit = splitSteps[splitIdx];
+  const splitComplete = splitLeftSlots.length > 0
+    && splitRightSlots.length > 0
+    && splitLeftSlots.every((slot) => slot !== null)
+    && splitRightSlots.every((slot) => slot !== null);
+
+  const initializeSplitSlots = (step) => {
+    if (!step) {
+      setSplitLeftSlots([]);
+      setSplitRightSlots([]);
+      return;
+    }
+    setSplitLeftSlots(Array(step.leftR - step.leftL + 1).fill(null));
+    setSplitRightSlots(Array(step.rightR - step.rightL + 1).fill(null));
+    setSplitDragIndex(null);
+  };
 
   const loadTaskState = (arr, nextTasks, idx) => {
     const t = nextTasks[idx];
@@ -57,11 +92,15 @@ export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
     setActivePseudoLine(3);
   };
 
-  const resetGame = (targetLevel = level) => {
-    const arr = [...LEVEL_ARRAYS[targetLevel]];
+  const resetGame = (targetLevel = level, randomizeValues = false) => {
+    const arr = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
     const nextTasks = buildMergeTasks(0, arr.length - 1);
+    const nextSplits = buildSplitSteps(0, arr.length - 1);
     setData(arr);
     setTasks(nextTasks);
+    setSplitSteps(nextSplits);
+    setSplitIdx(0);
+    setPhase(nextSplits.length > 0 ? 'split' : 'merge');
     setTaskIdx(0);
     setMistakes(0);
     setLives(5);
@@ -70,7 +109,17 @@ export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
     setScore(0);
     setIsComplete(false);
     setModal({ open: false, msg: '' });
-    loadTaskState(arr, nextTasks, 0);
+    if (nextSplits.length > 0) {
+      setLeftArr([]);
+      setRightArr([]);
+      setLeftPos(0);
+      setRightPos(0);
+      setMerged([]);
+      initializeSplitSlots(nextSplits[0]);
+      setActivePseudoLine(2);
+    } else {
+      loadTaskState(arr, nextTasks, 0);
+    }
   };
 
   useEffect(() => {
@@ -128,8 +177,88 @@ export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
     loadTaskState(written, tasks, nextTaskIdx);
   };
 
-  const handleTake = (side) => {
-    if (isComplete || !currentTask) return;
+  const handleAdvanceSplit = () => {
+    if (isComplete || phase !== 'split') return;
+    if (!splitComplete) {
+      triggerError('Finish dividing this range first: drag all highlighted values into the left and right empty boxes.');
+      return;
+    }
+    const nextIdx = splitIdx + 1;
+    if (nextIdx >= splitSteps.length) {
+      setPhase('merge');
+      setTaskIdx(0);
+      loadTaskState(data, tasks, 0);
+      return;
+    }
+    setSplitIdx(nextIdx);
+    initializeSplitSlots(splitSteps[nextIdx]);
+    setActivePseudoLine(2);
+  };
+
+  const isIndexPlacedInSplit = (absoluteIndex) =>
+    splitLeftSlots.includes(absoluteIndex) || splitRightSlots.includes(absoluteIndex);
+
+  const handleSplitDragStart = (absoluteIndex) => {
+    if (isComplete || phase !== 'split' || !currentSplit) return;
+    if (absoluteIndex < currentSplit.l || absoluteIndex > currentSplit.r) return;
+    if (isIndexPlacedInSplit(absoluteIndex)) {
+      triggerError(`Index ${absoluteIndex} is already placed. Pick another unplaced value.`);
+      return;
+    }
+    setSplitDragIndex(absoluteIndex);
+  };
+
+  const handleSplitDrop = (side, slotIdx) => {
+    if (isComplete || phase !== 'split' || !currentSplit || splitDragIndex === null) return;
+    const source = splitDragIndex;
+    setSplitDragIndex(null);
+
+    const expectedSide = source <= currentSplit.m ? 'left' : 'right';
+    const expectedSlot = expectedSide === 'left'
+      ? source - currentSplit.leftL
+      : source - currentSplit.rightL;
+
+    if (side !== expectedSide || slotIdx !== expectedSlot) {
+      triggerError(
+        `Index ${source} must go to ${expectedSide} half slot ${expectedSlot + 1}. Follow index ranges while dividing.`,
+      );
+      return;
+    }
+
+    if (side === 'left') {
+      if (splitLeftSlots[slotIdx] !== null) {
+        triggerError('That left slot is already filled.');
+        return;
+      }
+      const next = [...splitLeftSlots];
+      next[slotIdx] = source;
+      setSplitLeftSlots(next);
+    } else {
+      if (splitRightSlots[slotIdx] !== null) {
+        triggerError('That right slot is already filled.');
+        return;
+      }
+      const next = [...splitRightSlots];
+      next[slotIdx] = source;
+      setSplitRightSlots(next);
+    }
+
+    setMoves((m) => m + 1);
+    setScore((s) => s + 6);
+    setActivePseudoLine(2);
+  };
+
+  const handlePickElement = (side, idx) => {
+    if (isComplete || phase !== 'merge' || !currentTask) return;
+    if (side === 'left' && idx !== leftPos) {
+      triggerError(`Pick from left front only. Current left pointer is at position ${leftPos}.`);
+      return;
+    }
+    if (side === 'right' && idx !== rightPos) {
+      triggerError(`Pick from right front only. Current right pointer is at position ${rightPos}.`);
+      return;
+    }
+
     const leftDone = leftPos >= leftArr.length;
     const rightDone = rightPos >= rightArr.length;
     let expected = 'left';
@@ -160,9 +289,12 @@ export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
 
   const instruction = useMemo(() => {
     if (isComplete) return 'Sorted! Merge sort complete.';
+    if (phase === 'split' && currentSplit) {
+      return `Divide step: drag each value from range [${currentSplit.l}..${currentSplit.r}] into the correct left/right empty slot.`;
+    }
     if (!currentTask) return 'No active merge.';
     return `Merge range [${currentTask.l}..${currentTask.r}]. Choose the smaller front value.`;
-  }, [isComplete, currentTask]);
+  }, [isComplete, currentTask, phase, currentSplit]);
 
   return (
     <div className="animate-in fade-in duration-500 text-lg">
@@ -217,41 +349,140 @@ export default function MergeSortGamePage({ mode, onExit, onBackToMode }) {
             <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">Array</h4>
             <div className="flex flex-wrap gap-3">
               {data.map((val, idx) => (
-                <div key={`${val}-${idx}`} className={`px-4 py-3 rounded-xl border text-lg font-bold min-w-[72px] text-center ${currentTask && idx >= currentTask.l && idx <= currentTask.r ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>{val}</div>
+                <div
+                  key={`${val}-${idx}`}
+                  className={`px-4 py-3 rounded-xl border text-lg font-bold min-w-[72px] text-center ${
+                    phase === 'split' && currentSplit && idx >= currentSplit.l && idx <= currentSplit.r
+                      ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                      : currentTask && idx >= currentTask.l && idx <= currentTask.r
+                        ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-700'
+                  }`}
+                >
+                  {val}
+                </div>
               ))}
             </div>
           </div>
 
+          {phase === 'split' && currentSplit && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 mb-6">
+              <p className="text-xs uppercase tracking-wider text-indigo-700 font-bold mb-2">Divide by Halves</p>
+              <div className="bg-white border border-indigo-200 rounded-xl p-3 mb-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-2">Current Range Values</p>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from({ length: currentSplit.r - currentSplit.l + 1 }, (_, offset) => currentSplit.l + offset).map((absoluteIdx) => {
+                    const placed = isIndexPlacedInSplit(absoluteIdx);
+                    return (
+                      <div
+                        key={`split-value-${absoluteIdx}`}
+                        draggable={!placed}
+                        onDragStart={() => handleSplitDragStart(absoluteIdx)}
+                        onDragEnd={() => setSplitDragIndex(null)}
+                        className={`px-3 py-2 rounded-lg border text-sm font-bold ${
+                          placed
+                            ? 'bg-slate-100 border-slate-200 text-slate-400'
+                            : 'bg-indigo-100 border-indigo-300 text-indigo-800 cursor-grab active:cursor-grabbing'
+                        } ${splitDragIndex === absoluteIdx ? 'opacity-60' : ''}`}
+                      >
+                        {data[absoluteIdx]} <span className="text-[10px] uppercase">idx {absoluteIdx}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="bg-white border border-indigo-200 rounded-xl p-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1">Left Half</p>
+                  <p className="font-mono text-sm text-slate-700">[{currentSplit.leftL}..{currentSplit.leftR}]</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {splitLeftSlots.map((slotVal, slotIdx) => (
+                      <div
+                        key={`left-slot-${slotIdx}`}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => handleSplitDrop('left', slotIdx)}
+                        className="h-12 rounded-lg border-2 border-dashed border-indigo-300 bg-indigo-50 flex items-center justify-center text-sm font-bold text-indigo-700"
+                      >
+                        {slotVal === null ? `L${slotIdx + 1}` : `${data[slotVal]} (idx ${slotVal})`}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-white border border-indigo-200 rounded-xl p-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1">Right Half</p>
+                  <p className="font-mono text-sm text-slate-700">[{currentSplit.rightL}..{currentSplit.rightR}]</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {splitRightSlots.map((slotVal, slotIdx) => (
+                      <div
+                        key={`right-slot-${slotIdx}`}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => handleSplitDrop('right', slotIdx)}
+                        className="h-12 rounded-lg border-2 border-dashed border-indigo-300 bg-indigo-50 flex items-center justify-center text-sm font-bold text-indigo-700"
+                      >
+                        {slotVal === null ? `R${slotIdx + 1}` : `${data[slotVal]} (idx ${slotVal})`}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={handleAdvanceSplit}
+                  disabled={!splitComplete}
+                  className="px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700"
+                >
+                  Split Next
+                </button>
+              </div>
+            </div>
+          )}
+
+          {phase === 'merge' && (
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
               <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">Left Half</h4>
               <div className="flex flex-wrap gap-3 mb-3">
                 {leftArr.map((v, idx) => (
-                  <div key={`${v}-${idx}`} className={`px-3 py-2 rounded-lg border text-base font-bold min-w-[56px] text-center ${idx === leftPos ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-white border-slate-200 text-slate-700'}`}>{v}</div>
+                  <button
+                    key={`${v}-${idx}`}
+                    onClick={() => handlePickElement('left', idx)}
+                    className={`px-3 py-2 rounded-lg border text-base font-bold min-w-[56px] text-center ${
+                      idx === leftPos ? 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100' : 'bg-white border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {v}
+                  </button>
                 ))}
               </div>
-              <button onClick={() => handleTake('left')} className="w-full py-2 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700">Take Left</button>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
               <h4 className="text-xs uppercase tracking-wider text-slate-500 mb-2">Right Half</h4>
               <div className="flex flex-wrap gap-3 mb-3">
                 {rightArr.map((v, idx) => (
-                  <div key={`${v}-${idx}`} className={`px-3 py-2 rounded-lg border text-base font-bold min-w-[56px] text-center ${idx === rightPos ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-white border-slate-200 text-slate-700'}`}>{v}</div>
+                  <button
+                    key={`${v}-${idx}`}
+                    onClick={() => handlePickElement('right', idx)}
+                    className={`px-3 py-2 rounded-lg border text-base font-bold min-w-[56px] text-center ${
+                      idx === rightPos ? 'bg-amber-50 border-amber-400 text-amber-700 hover:bg-amber-100' : 'bg-white border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {v}
+                  </button>
                 ))}
               </div>
-              <button onClick={() => handleTake('right')} className="w-full py-2 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-100">Take Right</button>
             </div>
           </div>
+          )}
 
           {mode !== 'regular' && (
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-4 text-center">
               <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
-          <HelpPlaceholder mode={mode} />
+          <HelpPlaceholder mode={mode} algorithm="merge" />
 
           <div className="flex justify-center gap-3">
-            <button onClick={() => resetGame(level)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
+            <button onClick={() => resetGame(level, true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
             {onBackToMode && (
               <button
                 onClick={onBackToMode}

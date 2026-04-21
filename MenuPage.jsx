@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Zap, Container, ListFilter, GitMerge, TreePine, Hash, Milestone, PackageOpen, Bug, Sparkles } from 'lucide-react';
+import { Layers, Zap, Container, ListFilter, GitMerge, TreePine, Hash, PackageOpen, Bug, Sparkles } from 'lucide-react';
 import { MAX_LEVEL, getCompletedLevel } from './gameLevelUtils';
 
 const ALGO_DATA = {
@@ -31,10 +31,6 @@ const ALGO_DATA = {
     complexity: 'O(n + k)',
     description: 'Track frequencies and reconstruct sorted output.',
   },
-  'Radix Sort': {
-    complexity: 'O(d(n + k))',
-    description: 'Sort digit by digit using stable bucket passes.',
-  },
   'Bucket Sort': {
     complexity: 'O(n + k)',
     description: 'Distribute by ranges, sort buckets, and gather.',
@@ -49,7 +45,6 @@ const ALGO_KEYS = {
   'Merge Sort': 'merge',
   'Heap Sort': 'heap',
   'Counting Sort': 'counting',
-  'Radix Sort': 'radix',
   'Bucket Sort': 'bucket',
 };
 
@@ -70,7 +65,6 @@ export default function MenuPage({ onSelectAlgo }) {
     { name: 'Merge Sort', Icon: GitMerge },
     { name: 'Heap Sort', Icon: TreePine },
     { name: 'Counting Sort', Icon: Hash },
-    { name: 'Radix Sort', Icon: Milestone },
     { name: 'Bucket Sort', Icon: PackageOpen },
   ];
 

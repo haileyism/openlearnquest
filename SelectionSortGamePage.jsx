@@ -8,6 +8,11 @@ const LEVEL_ARRAYS = {
   2: [64, 12, 91, 37, 58, 23, 86, 41, 5],
   3: [73, 18, 99, 42, 67, 24, 88, 53, 11, 35, 60],
 };
+const RANDOM_MIN = 0;
+const RANDOM_MAX = 100;
+const randomIntInRange = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const buildRandomLevelArray = (level) =>
+  Array.from({ length: LEVEL_ARRAYS[level].length }, () => randomIntInRange(RANDOM_MIN, RANDOM_MAX));
 
 export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
   const [level, setLevel] = useState(1);
@@ -17,6 +22,7 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
   const [jIndex, setJIndex] = useState(1);
   const [minIndex, setMinIndex] = useState(0);
   const [phase, setPhase] = useState('scan');
+  const [dragIndex, setDragIndex] = useState(null);
   const [mistakes, setMistakes] = useState(0);
   const [lives, setLives] = useState(5);
   const [timer, setTimer] = useState(0);
@@ -38,13 +44,14 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   const logAction = (msg, cls = 'text-slate-400') => setActivityLog((prev) => [{ msg, cls }, ...prev].slice(0, 80));
 
-  const resetGame = (targetLevel = level) => {
-    const arr = [...LEVEL_ARRAYS[targetLevel]];
+  const resetGame = (targetLevel = level, randomizeValues = false) => {
+    const arr = randomizeValues ? buildRandomLevelArray(targetLevel) : [...LEVEL_ARRAYS[targetLevel]];
     setData(arr);
     setIIndex(0);
     setJIndex(1);
     setMinIndex(0);
     setPhase('scan');
+    setDragIndex(null);
     setMistakes(0);
     setLives(5);
     setTimer(0);
@@ -110,25 +117,7 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
     setActivePseudoLine(2);
   };
 
-  const handleMarkMin = (shouldMark) => {
-    if (isComplete || phase !== 'scan') return;
-    const actualShouldMark = data[jIndex] < data[minIndex];
-    setComparisons((c) => c + 1);
-    setActivePseudoLine(4);
-    if (shouldMark !== actualShouldMark) {
-      triggerError(`At j=${jIndex}, compare ${data[jIndex]} with current min ${data[minIndex]}.`);
-      return;
-    }
-
-    let nextMin = minIndex;
-    if (shouldMark) {
-      nextMin = jIndex;
-      setMinIndex(jIndex);
-      setScore((s) => s + 5);
-      logAction(`New min at idx ${jIndex}`, 'text-cyan-400');
-      setActivePseudoLine(5);
-    }
-
+  const advanceScan = (nextMin) => {
     if (jIndex + 1 >= data.length) {
       setPhase('place');
       setActivePseudoLine(6);
@@ -138,25 +127,100 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
     setMinIndex(nextMin);
   };
 
-  const handlePlaceMin = () => {
-    if (isComplete || phase !== 'place') return;
+  const handleKeepMin = () => {
+    if (isComplete || phase !== 'scan') return;
+    const actualShouldMark = data[jIndex] < data[minIndex];
+    setComparisons((c) => c + 1);
+    setActivePseudoLine(4);
+    if (actualShouldMark) {
+      triggerError(`Index j=${jIndex} is the new minimum. Drag index ${jIndex} to the min_index box.`);
+      return;
+    }
+    logAction(`Kept min_index at ${minIndex}`, 'text-slate-400');
+    advanceScan(minIndex);
+  };
+
+  const handleDragStart = (idx) => {
+    if (isComplete) return;
+    if (phase === 'scan') {
+      if (idx !== jIndex) {
+        triggerError(`Drag only the active j index (${jIndex}) when updating min_index.`);
+        return;
+      }
+      setDragIndex(idx);
+      return;
+    }
+    if (phase === 'place') {
+      if (idx !== iIndex && idx !== minIndex) {
+        triggerError(`In swap phase, drag only i (${iIndex}) and min_index (${minIndex}).`);
+        return;
+      }
+      setDragIndex(idx);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (dragIndex !== null) {
+      setDragIndex(null);
+    }
+  };
+
+  const handleDropMinIndex = () => {
+    if (isComplete || phase !== 'scan' || dragIndex === null) return;
+    const sourceIdx = dragIndex;
+    setDragIndex(null);
+    if (sourceIdx !== jIndex) {
+      triggerError(`Drag only index j (${jIndex}) to update min_index.`);
+      return;
+    }
+    const actualShouldMark = data[jIndex] < data[minIndex];
+    setComparisons((c) => c + 1);
+    setActivePseudoLine(4);
+    if (!actualShouldMark) {
+      triggerError(`Index j=${jIndex} is not smaller than min_index=${minIndex}. Click Keep Min.`);
+      return;
+    }
+    setMinIndex(jIndex);
+    setScore((s) => s + 5);
+    logAction(`New min at idx ${jIndex}`, 'text-cyan-400');
+    setActivePseudoLine(5);
+    advanceScan(jIndex);
+  };
+
+  const handleDropSwap = (targetIdx) => {
+    if (isComplete || phase !== 'place' || dragIndex === null) return;
+    const sourceIdx = dragIndex;
+    setDragIndex(null);
+    const validSwap = (sourceIdx === iIndex && targetIdx === minIndex)
+      || (sourceIdx === minIndex && targetIdx === iIndex);
+    if (!validSwap) {
+      triggerError(`Swap only index i (${iIndex}) with min_index (${minIndex}).`);
+      return;
+    }
     const next = [...data];
     if (minIndex !== iIndex) {
       [next[iIndex], next[minIndex]] = [next[minIndex], next[iIndex]];
       setSwaps((s) => s + 1);
       setScore((s) => s + 10);
       logAction(`Placed min at idx ${iIndex}`, 'text-green-500');
-    } else {
-      logAction(`Min already at idx ${iIndex}`);
     }
     setData(next);
     moveToNextPass(next);
   };
 
+  const handleContinuePlace = () => {
+    if (isComplete || phase !== 'place' || minIndex !== iIndex) return;
+    logAction(`Min already at idx ${iIndex}`);
+    moveToNextPass([...data]);
+  };
+
   const instruction = useMemo(() => {
     if (isComplete) return 'Sorted! Selection sort complete.';
-    if (phase === 'scan') return `Scan unsorted range: compare arr[j=${jIndex}] with current min arr[min=${minIndex}].`;
-    return `Place minimum at i=${iIndex} by swapping arr[i] and arr[min].`;
+    if (phase === 'scan') {
+      return `Scan step: index j = ${jIndex}. Compare value ${data[jIndex]} against current min_value ${data[minIndex]} (min_index = ${minIndex}). If smaller, drag j to min_index.`;
+    }
+    if (minIndex === iIndex) return `Place step: min_index already equals i = ${iIndex}. Click Continue Pass.`;
+    return `Place step: swap index i = ${iIndex} with min_index = ${minIndex} by dragging one onto the other.`;
   }, [isComplete, phase, jIndex, minIndex, iIndex]);
 
   return (
@@ -208,19 +272,54 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
             </div>
           )}
 
+          {!isComplete && (
+            <div className="grid md:grid-cols-2 gap-3 mb-4">
+              <div
+                onDragOver={(e) => {
+                  if (phase === 'scan') e.preventDefault();
+                }}
+                onDrop={handleDropMinIndex}
+                className="bg-cyan-50 border border-cyan-300 rounded-xl p-3"
+              >
+                <p className="text-[11px] font-bold uppercase tracking-wider text-cyan-700 mb-1">min_index</p>
+                <p className="text-xl font-bold text-cyan-800">{minIndex}</p>
+              </div>
+              <div className="bg-indigo-50 border border-indigo-300 rounded-xl p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-700 mb-1">min_val</p>
+                <p className="text-xl font-bold text-indigo-800">{data[minIndex]}</p>
+              </div>
+            </div>
+          )}
+
           <div className="h-64 flex items-end justify-between gap-1 mb-8 w-full">
             {data.map((val, idx) => (
               <div key={`${val}-${idx}`} className="flex-1 max-w-[84px] flex flex-col items-center gap-2">
                 <div
+                  draggable={!isComplete && ((phase === 'scan' && idx === jIndex) || (phase === 'place' && (idx === iIndex || idx === minIndex)))}
+                  onDragStart={() => handleDragStart(idx)}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={(e) => {
+                    if (phase === 'place' && dragIndex !== null && (idx === iIndex || idx === minIndex)) e.preventDefault();
+                  }}
+                  onDrop={() => handleDropSwap(idx)}
                   className={`w-full rounded-t-xl flex items-center justify-center text-base font-bold pb-2 transition-all shadow-sm
                     ${idx < iIndex ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}
                     ${idx === iIndex ? 'ring-4 ring-indigo-100 border-2 border-indigo-400 bg-white text-indigo-600' : ''}
                     ${phase === 'scan' && idx === jIndex ? 'ring-4 ring-amber-100 border-2 border-amber-400 bg-white text-slate-900' : ''}
                     ${idx === minIndex ? 'border-2 border-cyan-500' : ''}
+                    ${(phase === 'place' && (idx === iIndex || idx === minIndex)) ? 'cursor-grab active:cursor-grabbing' : ''}
+                    ${dragIndex === idx ? 'opacity-60' : ''}
                   `}
                   style={{ height: `${val * 2}px` }}
                 >
                   {val}
+                </div>
+                <div className="min-h-[12px] text-[10px] font-bold uppercase tracking-tight text-slate-500">
+                  {[
+                    idx === iIndex ? 'i' : '',
+                    phase === 'scan' && idx === jIndex ? 'j' : '',
+                    idx === minIndex ? 'min' : '',
+                  ].filter(Boolean).join(' · ')}
                 </div>
                 <span className="text-xs font-bold text-slate-500 uppercase">idx {idx}</span>
               </div>
@@ -231,11 +330,16 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
             <div className="mb-8 flex justify-center gap-3 flex-wrap">
               {phase === 'scan' ? (
                 <>
-                  <button onClick={() => handleMarkMin(true)} className="px-5 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700">New Min</button>
-                  <button onClick={() => handleMarkMin(false)} className="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50">Keep Min</button>
+                  <button onClick={handleKeepMin} className="px-5 py-3 rounded-xl border border-slate-300 text-slate-700 font-bold hover:bg-slate-50">Keep Min</button>
                 </>
               ) : (
-                <button onClick={handlePlaceMin} className="px-5 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">Place Min at i</button>
+                minIndex === iIndex ? (
+                  <button onClick={handleContinuePlace} className="px-5 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">Continue Pass</button>
+                ) : (
+                  <div className="px-5 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold">
+                    Drag i and min_index to swap
+                  </div>
+                )
               )}
             </div>
           )}
@@ -245,10 +349,10 @@ export default function SelectionSortGamePage({ mode, onExit, onBackToMode }) {
               <p className={`font-semibold text-slate-800 text-xl ${mode === 'tutorial' ? 'text-left leading-relaxed' : ''}`}>{instruction}</p>
             </div>
           )}
-          <HelpPlaceholder mode={mode} />
+          <HelpPlaceholder mode={mode} algorithm="selection" />
 
           <div className="flex justify-center gap-3">
-            <button onClick={() => resetGame(level)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
+            <button onClick={() => resetGame(level, true)} className="px-6 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 font-bold text-slate-700 text-lg flex items-center gap-2"><RotateCcw size={18} /> Reset Level</button>
             {onBackToMode && (
               <button
                 onClick={onBackToMode}
